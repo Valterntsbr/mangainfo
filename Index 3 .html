@@ -1,0 +1,3632 @@
+<!DOCTYPE html>
+<html lang="pt" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastreador de Leitura - Mangás & Manhwas</title>
+    <!-- Carrega Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carrega Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <!-- Configuração do Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Variáveis CSS para customização de tema (Inicializados com Paleta 0: Índigo) */
+        :root {
+            --color-primary: #4f46e5;
+            --color-secondary: #1e293b;
+            --color-background: #0f172a;
+            --color-header: #3730a3;
+            --color-text-light: #e5e7eb;
+            --color-text-muted: #9ca3af;
+            --color-accent: #f59e0b;
+            --color-danger: #ef4444;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-primary-rgb: 79, 70, 229;
+        }
+
+        .dark {
+            background-color: var(--color-background);
+            color: var(--color-text-light);
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Aplicando variáveis aos elementos principais usando classes dinâmicas */
+        .bg-primary {
+            background-color: var(--color-primary);
+        }
+
+        .hover\:bg-primary\:80:hover {
+            background-color: color-mix(in srgb, var(--color-primary), transparent 20%);
+        }
+
+        .bg-secondary {
+            background-color: var(--color-secondary);
+        }
+
+        .bg-header {
+            background-color: var(--color-header);
+        }
+
+        .text-accent {
+            color: var(--color-accent);
+        }
+
+        .border-primary {
+            border-color: var(--color-primary);
+        }
+
+        .border-danger {
+            border-color: var(--color-danger);
+        }
+
+        .bg-danger {
+            background-color: var(--color-danger);
+        }
+
+        .hover\:bg-danger\:80:hover {
+            background-color: color-mix(in srgb, var(--color-danger), transparent 20%);
+        }
+
+        .text-success {
+            color: var(--color-success);
+        }
+
+        .bg-success {
+            background-color: var(--color-success);
+        }
+
+        .border-warning {
+            border-color: var(--color-warning);
+        }
+
+        .text-warning {
+            color: var(--color-warning);
+        }
+
+        /* Custom scrollbar using variables */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--color-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-primary);
+            filter: brightness(1.2);
+        }
+
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .w-checkbox-col {
+            width: 40px;
+            min-width: 40px;
+        }
+
+        .bg-sync {
+            background-color: var(--color-success);
+        }
+
+        .hover\:bg-sync\:80:hover {
+            background-color: color-mix(in srgb, var(--color-success), transparent 20%);
+        }
+
+        .max-w-xs-50 {
+            max-width: 50px;
+        }
+
+        /* ALTURA MÁXIMA PARA LISTAS DE GERENCIAMENTO (OPÇÕES) E SCROLL */
+        .management-list-container {
+            max-height: 250px;
+            /* 10rem -> 16rem = 256px. Aumentado para 250px */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--color-secondary);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.1);
+            /* Fundo ligeiramente mais escuro */
+        }
+
+        /* Botões de Ordem */
+        .order-btn {
+            background-color: var(--color-secondary);
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-primary);
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.5rem;
+            transition: all 0.15s ease;
+        }
+
+        .order-btn:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .order-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Correção para botão Importar */
+        .bg-warning-custom {
+            background-color: var(--color-warning);
+        }
+
+        .hover\:bg-warning-custom:hover {
+            background-color: color-mix(in srgb, var(--color-warning), transparent 20%);
+        }
+
+        /* Estilo para cards de Informação */
+        .info-card {
+            background-color: var(--color-secondary);
+            border: 1px solid var(--color-primary);
+            box-shadow: 0 4px 6px -1px rgba(var(--color-primary-rgb), 0.1), 0 2px 4px -2px rgba(var(--color-primary-rgb), 0.06);
+        }
+
+        /* Overrides necessários para que as sombras funcionem com a variável */
+        .bg-secondary {
+            background-color: var(--color-secondary);
+        }
+
+        .bg-danger\/20 {
+            background-color: rgba(239, 68, 68, 0.2);
+        }
+
+        
+    </style>
+</head>
+
+<body class="dark transition-colors duration-300">
+
+    <!-- ABRIGA OS BLOCOS DE OPÇÕES PARA CLONAGEM/MOVIMENTAÇÃO -->
+    <div id="options-blocks-source" class="hidden">
+        <!-- Bloco 1: Visibilidade de Abas -->
+        <div id="block-visibilidade" class="lg:col-span-1 border border-gray-700 p-4 rounded-lg flex flex-col">
+            <h3 class="text-xl font-bold mb-3 text-primary">Gerenciar Visibilidade de Abas</h3>
+            <p class="text-sm text-gray-400 mb-4">Selecione quais abas do menu de navegação devem ser exibidas. A aba
+                "Opções" é sempre visível.</p>
+            <div id="tab-visibility-container" class="grid grid-cols-2 gap-3">
+                <!-- Checkboxes para abas serão injetados aqui -->
+            </div>
+        </div>
+
+        <!-- Bloco 2: Gêneros -->
+        <div id="block-generos" class="lg:col-span-2 border border-gray-700 p-4 rounded-lg flex flex-col">
+            <h3 class="text-xl font-bold mb-3 text-primary">Gerenciar Gêneros</h3>
+            <p class="text-sm text-gray-400 mb-3">Adicione novos gêneros à lista de opções (salvos localmente).</p>
+            <div class="flex space-x-2 mb-3">
+                <input type="text" id="new-genre-input" placeholder="Novo Gênero (Ex: Fantasia)"
+                    class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400 text-sm">
+                <button id="add-genre-button"
+                    class="py-3 px-4 bg-primary hover:bg-primary:80 rounded-lg text-white font-semibold text-sm transition duration-200 flex-shrink-0">
+                    Adicionar
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mb-2">Clique no X para remover um gênero da lista de opções.</p>
+            <div id="genres-management-list" class="management-list-container space-y-2">
+                <!-- Lista de gêneros para exclusão será injetada aqui -->
+            </div>
+        </div>
+
+        <!-- Bloco 3: Lembretes -->
+        <div id="block-lembretes" class="lg:col-span-1 border border-gray-700 p-4 rounded-lg flex flex-col">
+            <h3 class="text-xl font-bold mb-3 text-primary">Configuração Global de Lembretes</h3>
+            <p class="text-sm text-gray-400 mb-4">Gerencie as configurações de lembretes.</p>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="reminder-days-threshold" class="block text-sm font-medium text-gray-300 mb-1">
+                        Dias Padrão
+                    </label>
+                    <!-- Valor mínimo alterado para -1 -->
+                    <input type="number" id="reminder-days-threshold" value="7" min="-1"
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400 text-sm text-center">
+                </div>
+                <div>
+                    <label for="reminder-time-input" class="block text-sm font-medium text-gray-300 mb-1">
+                        Hora Padrão
+                    </label>
+                    <input type="time" id="reminder-time-input" value="18:00"
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400 text-sm text-center">
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2 mb-4">Intervalo de dias e hora para lembretes automáticos.</p>
+            <button id="save-reminder-settings-button"
+                class="w-full mt-auto py-3 px-4 bg-primary hover:bg-primary:80 rounded-lg text-white font-semibold transition duration-200">
+                Salvar Configurações
+            </button>
+        </div>
+
+        <!-- Bloco 4: Links -->
+        <div id="block-links" class="lg:col-span-2 border border-gray-700 p-4 rounded-lg flex flex-col">
+            <h3 class="text-xl font-bold mb-3 text-primary">Gerenciar Links de Leitura</h3>
+            <p class="text-sm text-gray-400 mb-3">Adicione novos sites para acessar rapidamente na aba Links.</p>
+            <input type="text" id="new-link-name-input" placeholder="Nome do Site (Ex: Site A)"
+                class="w-full p-3 mb-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400 text-sm">
+            <div class="flex space-x-2 mb-3">
+                <input type="url" id="new-link-url-input" placeholder="URL Base (Ex: https://site.com/obra/)"
+                    class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400 text-sm">
+                <button id="add-link-button"
+                    class="py-3 px-4 bg-success hover:bg-sync:80 rounded-lg text-white font-semibold text-sm transition duration-200 flex-shrink-0">
+                    Adicionar
+                </button>
+            </div>
+            <div id="links-management-list-2" class="management-list-container space-y-2">
+                <!-- Lista de links para exclusão (2) será injetada aqui -->
+            </div>
+        </div>
+
+        <!-- Bloco 5: Backup -->
+        <div id="block-backup" class="lg:col-span-1 border border-gray-700 p-4 rounded-lg flex flex-col">
+            <h3 class="text-xl font-bold mb-3 text-primary">Backup e Restauração</h3>
+            <p class="text-sm text-gray-400 mb-3">Gerencie seu backup. Importar irá substituir se a obra for mais
+                recente.</p>
+
+            <p id="last-export-date" class="text-xs text-gray-500 text-center mb-1">Última Exportação: N/A</p>
+            <button id="export-json-button"
+                class="w-full py-3 px-4 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-semibold transition duration-200 mb-3">
+                Exportar Dados (JSON)
+            </button>
+
+            <p id="last-import-date" class="text-xs text-gray-500 text-center mb-1">Última Importação: N/A</p>
+            <input type="file" id="import-file-input" accept="application/json" class="hidden">
+            <!-- Botão Importar corrigido para usar a cor de Aviso (warning) -->
+            <button id="import-json-button"
+                class="w-full py-3 px-4 bg-warning-custom hover:bg-warning-custom rounded-lg text-white font-semibold transition duration-200">
+                Importar Dados
+            </button>
+            <p class="mt-2 text-xs text-yellow-400">Atenção: A importação fará a sincronização inteligente (mais
+                recente).</p>
+
+            <!-- NOVO: Configuração de Lembrete de Backup -->
+            <fieldset class="border border-gray-700 p-3 rounded-lg mt-4">
+                <legend class="text-sm font-medium text-gray-300 px-2">Lembrete de Backup</legend>
+                <label for="backup-reminder-days" class="block text-xs font-medium text-gray-400 mb-1">
+                    Dias para Alerta de Backup
+                </label>
+                <!-- VALOR PADRÃO É 1 AGORA -->
+                <input type="number" id="backup-reminder-days" value="1" min="1"
+                    class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400 text-sm text-center">
+                <button id="save-backup-reminder-button"
+                    class="w-full mt-2 py-2 px-4 bg-primary hover:bg-primary:80 rounded-lg text-white font-semibold text-sm transition duration-200">
+                    Salvar Alerta
+                </button>
+            </fieldset>
+        </div>
+
+        <!-- Bloco 6: Tema -->
+        <div id="block-temas" class="lg:col-span-2 border border-gray-700 p-4 rounded-lg flex flex-col">
+            <h3 class="text-xl font-bold mb-3 text-primary">Tema e Paleta de Cores</h3>
+            <p class="text-sm text-gray-400 mb-4">Selecione uma das paletas de cores escuras.</p>
+            <div id="theme-buttons-container" class="grid grid-cols-3 gap-3">
+                <!-- Botões de tema serão injetados aqui via JS -->
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Clique no 🚀 no cabeçalho para alternar rapidamente.</p>
+        </div>
+
+        <!-- Bloco 7: Ordem (NOVO) -->
+        <div id="block-ordem" class="lg:col-span-1 border border-gray-700 p-4 rounded-lg flex flex-col">
+            <h3 class="text-xl font-bold mb-3 text-primary">Gerenciar Ordem dos Blocos</h3>
+            <p class="text-sm text-gray-400 mb-3">Mova os blocos desta aba (Opções).</p>
+            <div id="block-order-list" class="space-y-2">
+                <!-- Itens de ordem serão injetados aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal da Aplicação -->
+    <div id="app" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- Header -->
+        <header class="text-center mb-6 p-6 rounded-xl bg-header shadow-2xl shadow-[var(--color-primary)]/30">
+            <h1
+                class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white transition-colors duration-300 flex justify-center items-center space-x-3">
+                <span id="rocket-toggle"
+                    class="cursor-pointer inline-block transform hover:scale-110 transition duration-150">🚀</span>
+                <span>Rastreador de Leituras</span>
+            </h1>
+            <p class="mt-2 text-lg text-gray-200">
+                Cadastre seus mangás, manhwas, animes e novels favoritos.
+            </p>
+            <div id="auth-status" class="mt-4 text-sm text-gray-300">
+                <!-- Status de autenticação será inserido aqui -->
+            </div>
+        </header>
+
+        <!-- Busca Inteligente (Controlada por JS) -->
+        <div id="global-search-container" class="mb-6 flex space-x-3 hidden">
+            <input type="text" id="global-search-input" placeholder="🔍 Buscar por Nome, Gênero, Tipo ou Observação..."
+                class="w-full p-3 bg-secondary border border-primary rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400 text-gray-200">
+        </div>
+
+        <!-- Tab Navigation (NOVA ESTRUTURA) -->
+        <div class="mb-6">
+            <div class="flex justify-between border-b border-primary">
+                <!-- Abas da Esquerda/Centro -->
+                <div class="flex flex-wrap sm:flex-nowrap">
+                    <button id="tab-tracker" data-tab="tracker" data-control-id="tracker"
+                        class="tab-button px-4 py-2 text-sm font-medium border-b-2 border-primary text-gray-300 transition duration-150">
+                        Minhas Obras
+                    </button>
+                    <!-- NOVO: Aba Informações -->
+                    <button id="tab-info" data-tab="info" data-control-id="info"
+                        class="tab-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-[var(--color-primary)] hover:border-primary transition duration-150">
+                        Informações
+                    </button>
+                    <button id="tab-links" data-tab="links" data-control-id="links"
+                        class="tab-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-[var(--color-primary)] hover:border-primary transition duration-150">
+                        Links
+                    </button>
+                    <button id="tab-charts" data-tab="charts" data-control-id="charts"
+                        class="tab-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-[var(--color-primary)] hover:border-primary transition duration-150">
+                        Gráficos
+                    </button>
+                    <button id="tab-report" data-tab="report" data-control-id="report"
+                        class="tab-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-[var(--color-primary)] hover:border-primary transition duration-150">
+                        Relatório Dinâmico
+                    </button>
+                    <!-- CORREÇÃO DE NOME: Aba Lembretes -->
+                    <button id="tab-reminders" data-tab="reminders" data-control-id="reminders"
+                        class="tab-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-[var(--color-primary)] hover:border-primary transition duration-150 relative">
+                        Lembretes
+                        <span id="reminder-count-tab"
+                            class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-danger text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden"
+                            title="Obras com alertas ou atrasadas">
+                            0
+                        </span>
+                    </button>
+                </div>
+                <!-- Aba da Direita -->
+                <button id="tab-options" data-tab="options" data-control-id="options"
+                    class="tab-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-[var(--color-primary)] hover:border-primary transition duration-150">
+                    Opções
+                </button>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal - Aba Minhas Obras (Tracker) -->
+        <div id="tracker-section" class="tab-content">
+
+            <!-- Botão para abrir/fechar filtro -->
+            <button id="toggle-filter-button"
+                class="w-full py-3 px-8 bg-secondary hover:bg-gray-600 rounded-lg text-white font-semibold transition duration-200 mb-4 flex justify-center items-center space-x-2 border border-primary">
+                Filtros <span id="toggle-icon">▼</span>
+            </button>
+
+            <!-- Container do Filtro (Accordion) -->
+            <div id="filter-accordion-content"
+                class="bg-secondary p-4 rounded-xl shadow-lg mb-6 border border-primary hidden">
+                <h3 class="text-xl font-bold mb-3 text-gray-300">Filtrar por Gêneros e Colunas</h3>
+
+                <!-- Filtro 1: Gêneros -->
+                <fieldset class="border border-gray-700 p-4 rounded-lg mb-4">
+                    <legend class="text-lg font-medium text-gray-300 px-2">Filtrar por Gêneros</legend>
+                    <div id="genre-filter-container"
+                        class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 border-b border-gray-700 pb-3">
+                        <!-- Checkboxes de filtro serão injetados aqui via JS -->
+                    </div>
+                </fieldset>
+
+                <!-- Filtro 2: Colunas Visíveis da Tabela -->
+                <fieldset class="border border-gray-700 p-4 rounded-lg">
+                    <legend class="text-lg font-medium text-gray-300 px-2">Colunas da Tabela Visíveis</legend>
+                    <div id="column-filter-container" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                        <!-- Checkboxes de colunas serão injetados aqui via JS -->
+                    </div>
+                </fieldset>
+
+                <div class="mt-4 flex space-x-3 justify-end">
+                    <button id="apply-filter-button"
+                        class="py-2 px-4 bg-primary hover:bg-primary:80 rounded-lg text-white font-semibold transition duration-200">
+                        Aplicar Filtro
+                    </button>
+                    <button id="clear-filter-button"
+                        class="py-2 px-4 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-semibold transition duration-200">
+                        Limpar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- Botão para abrir o modal de cadastro -->
+            <div id="tracker-controls" class="mb-8 text-center flex justify-center items-center space-x-4">
+                <button id="open-form-modal-button"
+                    class="py-3 px-8 bg-primary hover:bg-primary:80 rounded-lg text-white font-semibold transition duration-200 shadow-lg shadow-[var(--color-primary)]/50">
+                    + Nova Obra
+                </button>
+                <!-- Botão para iniciar o modo de exclusão em massa -->
+                <button id="start-bulk-delete-button"
+                    class="py-3 px-6 bg-danger hover:bg-red-700 rounded-lg text-white font-semibold transition duration-200 shadow-lg shadow-red-500/50 disabled:bg-gray-600 disabled:shadow-none">
+                    Excluir Selecionados
+                </button>
+                <!-- Botão de Cancelar Exclusão (será injetado via JS) -->
+            </div>
+
+            <!-- Lista de Entradas Cadastradas -->
+            <div id="tracker-content" class="bg-secondary p-4 sm:p-6 rounded-xl shadow-lg border border-primary">
+                <h2 class="text-2xl font-bold mb-4 text-gray-300 flex items-center justify-between">
+                    Obras Rastreáveis
+                    <span id="loading-indicator" class="text-gray-400 text-sm italic hidden">Carregando...</span>
+                </h2>
+
+                <!-- Tabela de Leituras -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-700">
+                            <tr id="table-header-row">
+                                <!-- Cabeçalho de seleção em massa (hidden por padrão, gerenciado via JS) -->
+                                <th id="bulk-delete-header"
+                                    class="px-1 py-3 w-checkbox-col text-center text-xs font-medium text-gray-300 uppercase tracking-wider rounded-tl-lg hidden">
+                                    <input type="checkbox" id="select-all-checkbox"
+                                        class="h-4 w-4 text-danger bg-gray-700 border-gray-600 rounded">
+                                </th>
+                                <!-- Colunas dinâmicas serão injetadas/manipuladas aqui pelo JS -->
+                                <th id="sort-name" data-col="name"
+                                    class="sortable px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap">
+                                    Obra <span class="sort-icon"></span>
+                                </th>
+                                <th id="sort-progress" data-col="progressValue"
+                                    class="sortable px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap">
+                                    Progresso <span class="sort-icon"></span>
+                                </th>
+                                <th id="sort-score" data-col="score"
+                                    class="sortable px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider hidden sm:table-cell cursor-pointer hover:text-white whitespace-nowrap">
+                                    Nota <span class="sort-icon"></span>
+                                </th>
+                                <th id="sort-updated" data-col="timestamp"
+                                    class="sortable px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider rounded-tr-lg cursor-pointer hover:text-white whitespace-nowrap">
+                                    Atualizado <span class="sort-icon"></span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="entries-list" class="divide-y divide-gray-700">
+                            <!-- Entradas serão injetadas aqui -->
+                            <tr>
+                                <td colspan="5" class="p-4 text-center text-gray-400" id="no-entries-message">
+                                    Nenhuma obra cadastrada ainda. Use o botão 'Nova Obra' para começar!
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CORREÇÃO DE NOME: Conteúdo Principal - Aba Lembretes -->
+        <div id="reminders-section"
+            class="bg-secondary p-6 sm:p-8 rounded-xl shadow-lg border border-warning tab-content hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-300 flex items-center space-x-2">
+                <svg class="w-6 h-6 text-warning" fill="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM15.5 8h-7c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5h7c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5zm-5 6.5h-2v-2h2v2zm3 0h-2v-2h2v2zm3 0h-2v-2h2v2z" />
+                </svg>
+                Lembretes e Obras Atrasadas
+                <span id="reminders-total-count"
+                    class="px-2 py-0.5 text-sm font-semibold rounded-full bg-danger text-white">0</span>
+            </h2>
+            <p id="reminder-config-info" class="text-sm text-gray-400 mb-6">
+                Atraso configurado: <span id="reminder-days-config" class="font-bold text-white">15 dias</span> sem
+                atualização. Ajuste em Opções.
+            </p>
+
+            <div id="reminders-list-container" class="space-y-4">
+                <!-- Lembranças serão injetadas aqui -->
+            </div>
+
+            <p id="reminders-no-data" class="text-gray-400 text-center py-8 hidden">
+                Nenhuma obra em leitura está atrasada. Ótimo trabalho!
+            </p>
+        </div>
+
+        <!-- NOVO: Conteúdo Principal - Aba Informações (REESTRUTURADO) -->
+        <div id="info-section"
+            class="bg-secondary p-6 sm:p-8 rounded-xl shadow-lg border border-primary tab-content hidden">
+            <h2 class="text-2xl font-bold mb-6 text-primary flex items-center space-x-2">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                </svg>
+                Guia Rápido de Funcionalidades
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <!-- Card 1: Cadastro Inteligente -->
+                <div class="info-card p-4 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-bold mb-2 text-primary flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                        Cadastro Inteligente
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-2">A forma mais rápida de registrar suas obras na aba
+                        <strong>Minhas Obras</strong>.
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-xs text-gray-300 ml-2">
+                        <li><strong>Por Link:</strong> Cole um link de capítulo (ex: com `capitulo-104`) ou o **link
+                            base da obra** (ex: `.../bleach/`). O sistema preenche o Nome da Obra e o número de
+                            Capítulos Lidos (0 se for link base).</li>
+                        <li><strong>Por Nome:</strong> Se você digitar o nome de uma obra existente, o formulário puxa
+                            automaticamente a <strong>Observação</strong>, Gêneros e Nota anteriores. Basta atualizar o
+                            contador de capítulos e salvar!</li>
+                    </ul>
+                </div>
+
+                <!-- Card 2: Filtros e Tabela -->
+                <div class="info-card p-4 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-bold mb-2 text-success flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0012 16.586V20m-3-3h6">
+                            </path>
+                        </svg>
+                        Filtros & Colunas
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-2">Organize a sua visualização de dados:</p>
+                    <ul class="list-disc list-inside space-y-1 text-xs text-gray-300 ml-2">
+                        <li><strong>Gêneros (Filtro OR):</strong> Selecione múltiplos gêneros para exibir obras que
+                            contenham <strong>qualquer um</strong> dos selecionados.</li>
+                        <li><strong>Colunas:</strong> Personalize quais informações (Nota, Status, Tipo) aparecem na
+                            tabela principal.</li>
+                        <li><strong>Persistência:</strong> Suas escolhas de filtros, colunas e ordenação são salvas
+                            automaticamente no seu navegador.</li>
+                    </ul>
+                </div>
+
+                <!-- Card 3: Lembretes Inteligentes -->
+                <div class="info-card p-4 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-bold mb-2 text-warning flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                        </svg>
+                        Alertas e Lembretes
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-2">Disponível na aba <strong>Lembretes</strong>.</p>
+                    <ul class="list-disc list-inside space-y-1 text-xs text-gray-300 ml-2">
+                        <li><strong>Alerta de Leitura:</strong> Notifica se uma obra no status "Lendo" não foi
+                            atualizada dentro do limite de dias configurado (padrão 7 dias). Mínimo de dias é **-1**
+                            (para testes).</li>
+                        <li><strong>Alerta de Backup:</strong> Te lembra se faz muito tempo (padrão 1 dia) desde a
+                            última vez que você exportou seus dados.</li>
+                        <li><strong>Interação:</strong> Clique no nome da obra para ir para o site ou em "Ver Detalhes"
+                            para editar/excluir.</li>
+                    </ul>
+                </div>
+
+                <!-- Card 4: Backup e Sincronização -->
+                <div class="info-card p-4 rounded-lg shadow-lg md:col-span-1">
+                    <h3 class="text-lg font-bold mb-2 text-accent flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7v4a1 1 0 01-1 1H3m14 0h4a1 1 0 001-1V7m-4 10h-2m4 0h-2m-8 0h2m-4 0h2"></path>
+                        </svg>
+                        Backup e Importação
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-2">Acesse na aba <strong>Opções</strong>.</p>
+                    <ul class="list-disc list-inside space-y-1 text-xs text-gray-300 ml-2">
+                        <li><strong>Exportar (JSON):</strong> Recomendado para salvar seus dados periodicamente,
+                            especialmente se estiver usando o Modo Local.</li>
+                        <li><strong>Importar (Sincronização Inteligente):</strong> Ao importar, a aplicação
+                            **substitui** completamente os gêneros salvos pelos gêneros do arquivo. Nas obras, a obra
+                            mais **recente** (pelo timestamp) prevalece.</li>
+                    </ul>
+                </div>
+
+                <!-- Card 5: Customização (Opções) -->
+                <div class="info-card p-4 rounded-lg shadow-lg md:col-span-2">
+                    <h3 class="text-lg font-bold mb-2 text-primary flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.942 3.333.9 2.84 2.532a1.724 1.724 0 00.045 3.123c1.543.942-.259 2.731-1.789 2.872a1.724 1.724 0 00-2.071 1.769c-.274 1.638-2.612 1.638-2.887 0a1.724 1.724 0 00-2.071-1.769 1.724 1.724 0 00-1.789-2.872c-1.543-.942.259-2.731 1.789-2.872a1.724 1.724 0 002.573-1.066z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Opções e Personalização
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-400 ml-2">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><strong>Visibilidade de Abas:</strong> Ative/desative abas opcionais (Gráficos, Links,
+                                etc.) para simplificar a interface.</li>
+                            <li><strong>Tema:</strong> Alterne entre diferentes paletas de cores escuras.</li>
+                            <li><strong>Gêneros e Links:</strong> Adicione ou remova gêneros para o seu cadastro e links
+                                rápidos.</li>
+                        </ul>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><strong>Configuração de Lembretes:</strong> Defina o período (em dias) para alertas de
+                                obras não atualizadas e o lembrete de backup.</li>
+                            <li><strong>Ordem dos Blocos:</strong> Reorganize a ordem dos blocos de conteúdo dentro da
+                                própria aba Opções.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rodapé de Créditos -->
+            <div class="mt-10 pt-4 border-t border-gray-700 text-center">
+                <p class="text-xs text-gray-500">
+                    © 2025 Rastreador de Leituras. Código-fonte criado e mantido por [Seu Nome/Nome da Equipe].
+                </p>
+                <p class="text-xs text-gray-500 mt-1">
+                    Sinta-se à vontade para compartilhar ou modificar o código, mantendo a referência à fonte original.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Conteúdo Principal - Aba Links (NOVA) -->
+        <div id="links-section"
+            class="bg-secondary p-6 sm:p-8 rounded-xl shadow-lg border border-primary tab-content hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-300">
+                Links Úteis para Leitura
+            </h2>
+            <p class="text-gray-400 mb-6">
+                Selecione um link para abrir em uma nova aba. Gerencie e adicione mais links na aba "Opções".
+            </p>
+
+            <div id="links-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Links serão injetados aqui via JS -->
+            </div>
+            <p id="links-no-data" class="text-gray-400 text-center py-8 hidden">
+                Nenhum link cadastrado. Adicione seus favoritos na aba "Opções".
+            </p>
+        </div>
+
+
+        <!-- Conteúdo Principal - Aba Gráficos (ATUALIZADO) -->
+        <div id="charts-content"
+            class="bg-secondary p-6 sm:p-8 rounded-xl shadow-lg border border-primary tab-content hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-300">
+                Estatísticas de Leitura
+            </h2>
+
+            <!-- Cards de Resumo (NOVO) -->
+            <div id="summary-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-gray-700 p-4 rounded-lg shadow-xl border border-gray-600 text-center">
+                    <p class="text-sm text-gray-400">Total de Obras</p>
+                    <p id="card-total-entries" class="text-3xl font-extrabold text-white mt-1">0</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg shadow-xl border border-gray-600 text-center">
+                    <p class="text-sm text-gray-400">Capítulos Lidos (Total)</p>
+                    <p id="card-chapters-read" class="text-3xl font-extrabold text-white mt-1">0</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg shadow-xl border border-gray-600 text-center">
+                    <p class="text-sm text-gray-400">Em Leitura</p>
+                    <p id="card-reading" class="text-3xl font-extrabold text-white mt-1 text-primary">0</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg shadow-xl border border-gray-600 text-center">
+                    <p class="text-sm text-gray-400">Concluídos</p>
+                    <p id="card-completed" class="text-3xl font-extrabold text-white mt-1 text-success">0</p>
+                </div>
+            </div>
+
+            <div id="charts-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                <!-- Chart 4: Capítulos Lidos por Mês (NOVO) -->
+                <div class="lg:col-span-2 bg-gray-700 p-4 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-medium text-gray-200 mb-3">Capítulos Lidos por Mês</h3>
+                    <div class="max-w-full mx-auto h-72">
+                        <canvas id="monthlyChaptersChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 1: Distribuição por Tipo (Doughnut) -->
+                <div class="lg:col-span-2 bg-gray-700 p-4 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-medium text-gray-200 mb-3">Distribuição por Tipo de Obra</h3>
+                    <div class="max-w-full lg:max-w-md mx-auto">
+                        <canvas id="typeChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+            <p id="charts-no-data" class="text-gray-400 text-center py-8 hidden">Adicione obras para ver os gráficos.
+            </p>
+        </div>
+
+        <!-- Conteúdo Principal - Aba Relatório Dinâmico (Removida Import/Export) -->
+        <div id="report-content"
+            class="bg-secondary p-6 sm:p-8 rounded-xl shadow-lg border border-primary tab-content hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-300">
+                Gerar Relatório Dinâmico
+            </h2>
+            <form id="report-form" class="space-y-6">
+                <fieldset class="border border-gray-700 p-4 rounded-lg">
+                    <legend class="text-lg font-medium text-gray-300 px-2">Campos do Relatório</legend>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                        <label class="flex items-center text-gray-200">
+                            <input type="checkbox" name="field" value="name" checked
+                                class="form-checkbox h-4 w-4 text-primary bg-gray-700 border-gray-600 rounded">
+                            <span class="ml-2">Nome da Obra</span>
+                        </label>
+                        <label class="flex items-center text-gray-200">
+                            <input type="checkbox" name="field" value="chaptersRead" checked
+                                class="form-checkbox h-4 w-4 text-primary bg-gray-700 border-gray-600 rounded">
+                            <span class="ml-2">Capítulos Lidos</span>
+                        </label>
+                        <label class="flex items-center text-gray-200">
+                            <input type="checkbox" name="field" value="totalChapters"
+                                class="form-checkbox h-4 w-4 text-primary bg-gray-700 border-gray-600 rounded">
+                            <span class="ml-2">Capítulos Totais</span>
+                        </label>
+                        <label class="flex items-center text-gray-200">
+                            <input type="checkbox" name="field" value="score"
+                                class="form-checkbox h-4 w-4 text-primary bg-gray-700 border-gray-600 rounded">
+                            <span class="ml-2">Nota</span>
+                        </label>
+                        <label class="flex items-center text-gray-200">
+                            <input type="checkbox" name="field" value="genres"
+                                class="form-checkbox h-4 w-4 text-primary bg-gray-700 border-gray-600 rounded">
+                            <span class="ml-2">Gêneros</span>
+                        </label>
+                        <label class="flex items-center text-gray-200">
+                            <input type="checkbox" name="field" value="updatedAt"
+                                class="form-checkbox h-4 w-4 text-primary bg-gray-700 border-gray-600 rounded">
+                            <span class="ml-2">Última Atualização</span>
+                        </label>
+                        <label class="flex items-center text-gray-200">
+                            <input type="checkbox" name="field" value="workType"
+                                class="form-checkbox h-4 w-4 text-primary bg-gray-700 border-gray-600 rounded">
+                            <span class="ml-2">Tipo de Obra</span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <button type="submit" id="generate-report-button"
+                    class="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-semibold transition duration-200 shadow-md shadow-purple-500/50">
+                    Gerar Relatório
+                </button>
+            </form>
+
+            <div id="report-output-area" class="mt-8 pt-4 border-t border-gray-700 hidden">
+                <h3 class="text-xl font-bold mb-4 text-gray-300">
+                    Relatório Gerado
+                </h3>
+                <pre id="report-output"
+                    class="bg-gray-700 p-4 rounded-lg text-sm whitespace-pre-wrap break-words max-h-96 overflow-y-auto border border-primary"></pre>
+
+                <!-- Ações de Download e Cópia TXT -->
+                <p class="mt-4 text-sm text-gray-400">
+                    Clique em **"Baixar Relatório (TXT)"** para salvar o arquivo em seu dispositivo.
+                </p>
+
+                <div class="mt-4 flex flex-col sm:flex-row items-stretch sm:space-x-3 space-y-3 sm:space-y-0">
+                    <button id="download-report-button"
+                        class="py-3 px-4 bg-primary hover:bg-primary:80 rounded-lg text-white font-semibold transition duration-200 flex-shrink-0">
+                        Baixar Relatório (TXT)
+                    </button>
+                    <button id="copy-report-text-button"
+                        class="py-3 px-4 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-semibold transition duration-200 flex-shrink-0">
+                        Copiar Relatório
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal - Aba Opções (Layout Proporcional) -->
+        <div id="options-section"
+            class="bg-secondary p-6 sm:p-8 rounded-xl shadow-lg border border-primary tab-content hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-300">
+                Configurações e Opções
+            </h2>
+
+            <!-- Grelha principal de Opções (Proporcional) -->
+            <div id="options-layout-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Os blocos serão injetados aqui pela função renderOptionsLayout -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal de Formulário de Cadastro/Edição -->
+    <div id="form-modal" class="modal fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50">
+        <!-- ATUALIZADO: max-h-[95vh] e overflow-y-auto para scroll em mobile -->
+        <div
+            class="bg-secondary p-4 sm:p-8 rounded-xl shadow-2xl w-[95%] max-w-lg sm:max-w-2xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-95 opacity-0">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
+                <h2 id="form-modal-title" class="text-xl sm:text-2xl font-bold text-gray-300 break-words max-w-[80%]">
+                    Adicionar Nova Obra / Capítulo
+                </h2>
+                <button id="close-form-modal" class="text-gray-400 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="entry-form" class="grid grid-cols-1 md:grid-cols-6 gap-4">
+
+                <!-- Campo Link (para preenchimento automático) -->
+                <div class="md:col-span-6">
+                    <label for="link" class="block text-sm font-medium text-gray-300 mb-1">
+                        Link do Último Capítulo Lido (Opcional, para preencher auto)
+                    </label>
+                    <input type="url" id="link"
+                        placeholder="Ex: https://mangalivre.tv/manga/nome/capitulo-104 ou link base"
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400">
+                </div>
+
+                <!-- Campo Nome -->
+                <div class="md:col-span-3">
+                    <label for="name" class="block text-sm font-medium text-gray-300 mb-1">
+                        Nome da Obra
+                    </label>
+                    <input type="text" id="name" required placeholder="Nome do Mangá/Manhwa"
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400">
+                    <p id="existing-entry-message" class="text-xs text-primary mt-1 hidden">Obra existente! Editando
+                        dados.</p>
+                </div>
+
+                <!-- NOVO: Campo Status -->
+                <div class="md:col-span-3">
+                    <label for="status" class="block text-sm font-medium text-gray-300 mb-1">
+                        Status
+                    </label>
+                    <select id="status" required
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary text-gray-400">
+                        <option value="Lendo">Lendo</option>
+                        <option value="Pausado">Pausado</option>
+                        <option value="Temporada Finalizada">Temporada Finalizada</option>
+                        <option value="Dropado">Dropado</option>
+                        <option value="Completo">Completo</option>
+                    </select>
+                </div>
+
+                <!-- NOVO: Campo Gêneros Checkbox Container (md:col-span-6 para quebra de linha) -->
+                <div class="md:col-span-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">
+                        Gêneros
+                    </label>
+                    <div id="genres-checkbox-container"
+                        class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2 bg-gray-700 rounded-lg border border-gray-600 max-h-32 overflow-y-auto">
+                        <!-- Checkboxes serão injetados aqui via JS -->
+                    </div>
+                </div>
+
+                <!-- NOVO: Campo Descrição/Observação -->
+                <div class="md:col-span-6">
+                    <label for="description" class="block text-sm font-medium text-gray-300 mb-1">
+                        Observação / Descrição
+                    </label>
+                    <textarea id="description" rows="3" placeholder="Insira suas anotações sobre a obra..."
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400"></textarea>
+                </div>
+
+                <!-- LINHA DOS CAPÍTULOS E NOTA (4 COLUNAS) -->
+                <!-- Campo Tipo de Obra (1/6) -->
+                <div class="md:col-span-2">
+                    <label for="workType" class="block text-sm font-medium text-gray-300 mb-1">
+                        Tipo de Obra
+                    </label>
+                    <select id="workType" required
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary text-gray-400">
+                        <option value="Manga">Mangá</option>
+                        <option value="Manhwa">Manhwa</option>
+                        <option value="Anime">Anime</option>
+                        <option value="Novel">Novel/Livro</option>
+                        <option value="Other">Outro</option>
+                    </select>
+                </div>
+
+                <!-- Campo Capítulos Totais (2/6) -->
+                <div class="md:col-span-2">
+                    <label for="totalChapters" class="block text-sm font-medium text-gray-300 mb-1">
+                        Capítulos Totais
+                    </label>
+                    <input type="number" id="totalChapters" placeholder="Ex: 250"
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400">
+                </div>
+
+                <!-- Campo Capítulos Lidos (1/6) -->
+                <div class="md:col-span-1">
+                    <label for="chaptersRead" class="block text-sm font-medium text-gray-300 mb-1">
+                        Lidos
+                    </label>
+                    <input type="number" id="chaptersRead" required value="0"
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400">
+                </div>
+
+                <!-- Campo Nota (1/6) -->
+                <div class="md:col-span-1">
+                    <label for="score" class="block text-sm font-medium text-gray-300 mb-1">
+                        Nota (0-10)
+                    </label>
+                    <input type="number" id="score" min="0" max="10" placeholder="Ex: 8.5" step="0.1"
+                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary focus:border-primary placeholder-gray-400">
+                </div>
+
+                <!-- Botão de Ação -->
+                <div class="md:col-span-6 mt-4">
+                    <input type="hidden" id="entry-id" value="">
+                    <button type="submit" id="submit-button"
+                        class="w-full py-3 px-4 bg-primary hover:bg-primary:80 rounded-lg text-white font-semibold transition duration-200 shadow-md shadow-primary/50">
+                        <span id="submit-text">Cadastrar Obra</span>
+                    </button>
+                    <button type="button" id="cancel-edit-button" style="display: none;"
+                        class="mt-2 w-full py-3 px-4 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-semibold transition duration-200">
+                        Cancelar Edição
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal de Detalhes da Obra -->
+    <div id="details-modal" class="modal fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50">
+        <div id="details-content-card"
+            class="bg-secondary p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
+                <h3 id="details-name" class="text-2xl font-bold text-gray-300 break-words max-w-[80%]">Detalhes da Obra
+                </h3>
+                <button id="close-details-modal" class="text-gray-400 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div id="details-body" class="space-y-3 text-gray-200">
+                <!-- Conteúdo dos detalhes e botões de ação são injetados aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação Personalizado (Substitui alert/confirm) -->
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+        <div class="bg-secondary p-6 rounded-xl shadow-2xl w-96 border border-danger">
+            <h3 id="modal-title" class="text-xl font-bold mb-4 text-danger">Atenção!</h3>
+            <p id="modal-message" class="mb-6 text-gray-200 whitespace-pre-wrap">Você tem certeza que deseja excluir
+                esta obra?</p>
+            <div id="modal-actions" class="flex justify-end space-x-3">
+                <button id="modal-cancel"
+                    class="py-2 px-4 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-medium">
+                    Cancelar
+                </button>
+                <button id="modal-confirm"
+                    class="py-2 px-4 bg-danger hover:bg-red-700 rounded-lg text-white font-medium">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIGURAÇÃO GLOBAL ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'manga-tracker-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' && JSON.parse(__firebase_config).projectId
+            ? JSON.parse(__firebase_config)
+            : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db = null;
+        let auth = null;
+        let userId = 'local-user';
+        let isLocalMode = false;
+        let allEntries = [];
+        let currentSort = { field: 'timestamp', direction: 'desc' };
+
+        // Variáveis de Filtro Salvas
+        const ACTIVE_GENRE_FILTER_KEY = 'manga_tracker_active_genre_filters';
+        const VISIBLE_COLS_STORAGE_KEY = 'manga_tracker_visible_cols';
+        let activeGenreFilters = [];
+        let globalSearchTerm = '';
+        // PADRÃO ALTERADO PARA 7 DIAS
+        let reminderDaysThreshold = 7;
+        let bulkDeleteMode = false;
+
+        // NOVO: Chaves de Lembrete de Backup
+        const BACKUP_REMINDER_DAYS_KEY = 'manga_tracker_backup_reminder_days';
+        const LAST_EXPORT_TIMESTAMP_KEY = 'manga_tracker_last_export'; // Reutiliza a chave existente
+        let backupReminderDays = 1; // Padrão para alerta de backup em 1 dia
+
+        // --- CHAVES DE ARMAZENAMENTO LOCAL ---
+        const LOCAL_STORAGE_KEY = 'manga_tracker_local_data';
+        const GENRES_STORAGE_KEY = 'manga_tracker_genres';
+        const LINKS_STORAGE_KEY = 'manga_tracker_links';
+        const THEME_STORAGE_KEY = 'manga_tracker_theme_index';
+        const REMINDER_STORAGE_KEY = 'manga_tracker_reminder_days';
+        const VISIBLE_TABS_STORAGE_KEY = 'manga_tracker_visible_tabs';
+        const BLOCK_ORDER_KEY = 'manga_tracker_block_order';
+        const LAST_EXPORT_KEY = 'manga_tracker_last_export';
+        const LAST_IMPORT_KEY = 'manga_tracker_last_import';
+
+        setLogLevel('Debug');
+
+        // --- DADOS PADRÃO ---
+
+        // Gêneros Padrão
+        let DEFAULT_GENRES = [
+            'Ação', 'Aventura', 'Comédia', 'Drama', 'Romance', 'Fantasia',
+            'Ficção Científica', 'Horror/Terror', 'Slice of Life', 'Isekai',
+            'Esportes', 'Mecha'
+        ];
+        let STANDARD_GENRES = [...DEFAULT_GENRES];
+
+        // Colunas da Tabela
+        const ALL_TABLE_COLUMNS = [
+            { id: 'name', label: 'Obra', default: true, hidden: false },
+            { id: 'progress', label: 'Progresso', default: true, hidden: false },
+            { id: 'score', label: 'Nota', default: true, hidden: false, sortId: 'score' },
+            { id: 'updated', label: 'Atualizado', default: true, hidden: false, sortId: 'timestamp' },
+            { id: 'status', label: 'Status', default: false, hidden: true },
+            { id: 'type', label: 'Tipo', default: false, hidden: true },
+        ];
+        let visibleTableColumns = []; // Será carregado do localStorage
+
+        // Abas Controláveis - CORREÇÃO: "Opções" removida daqui.
+        const CONTROLLABLE_TABS = [
+            { id: 'tracker', label: 'Minhas Obras', default: true },
+            { id: 'info', label: 'Informações', default: true }, // MANTIDO: Visível por padrão
+            { id: 'links', label: 'Links', default: false },
+            { id: 'charts', label: 'Gráficos', default: false },
+            { id: 'report', label: 'Relatório Dinâmico', default: false },
+            { id: 'reminders', label: 'Lembretes', default: false },
+        ];
+        let visibleTabs = {};
+
+        // Links Padrão
+        const DEFAULT_LINKS = [
+            { name: 'MangaLivre (Original)', url: 'https://mangalivre.tv/' },
+            { name: 'Ler Mangá Online (Original)', url: 'https://lermanga.org/' },
+            { name: 'Animes Online (Original)', url: 'https://animefire.net/' },
+        ];
+        let STANDARD_LINKS = [...DEFAULT_LINKS];
+
+        // Paletas de Tema Escuro (9 cores para simetria 3x3)
+        const THEME_PALETTES = [
+            { id: 'Cor 1 (Índigo)', primary: '#4f46e5', secondary: '#1e293b', background: '#0f172a', header: '#3730a3', read: 'rgb(59, 130, 246, 0.8)' },
+            { id: 'Cor 2 (Ciano)', primary: '#14b8a6', secondary: '#1a242c', background: '#0d1317', header: '#0f766e', read: 'rgb(20, 184, 166, 0.8)' },
+            { id: 'Cor 3 (Violeta)', primary: '#a855f7', secondary: '#241d33', background: '#130e1d', header: '#7c3aed', read: 'rgb(168, 85, 247, 0.8)' },
+            { id: 'Cor 4 (Ouro)', primary: '#d97706', secondary: '#292524', background: '#1c1917', header: '#b45309', read: 'rgb(251, 191, 36, 0.8)' },
+            { id: 'Cor 5 (Esmeralda)', primary: '#10b981', secondary: '#111827', background: '#080d15', header: '#059669', read: 'rgb(16, 185, 129, 0.8)' },
+            { id: 'Cor 6 (Rosa)', primary: '#e11d48', secondary: '#291b1f', background: '#150d11', header: '#be123c', read: 'rgb(225, 29, 72, 0.8)' },
+            { id: 'Cor 7 (Azul)', primary: '#3b82f6', secondary: '#151e2b', background: '#0b131c', header: '#2563eb', read: 'rgb(59, 130, 246, 0.8)' },
+            { id: 'Cor 8 (Fúcsia)', primary: '#d946ef', secondary: '#241a29', background: '#140c17', header: '#c026d3', read: 'rgb(217, 70, 239, 0.8)' },
+            { id: 'Cor 9 (Ciano Claro)', primary: '#06b6d4', secondary: '#112228', background: '#071216', header: '#0891b2', read: 'rgb(6, 182, 212, 0.8)' },
+        ];
+        let currentThemeIndex = 0;
+
+        // Ordem dos Blocos de Opções
+        const OPTIONS_BLOCK_IDS = [
+            { id: 'visibilidade', label: 'Gerenciar Visibilidade de Abas' },
+            { id: 'generos', label: 'Gerenciar Gêneros' },
+            { id: 'lembretes', label: 'Configuração de Lembretes' },
+            { id: 'links', label: 'Gerenciar Links de Leitura' },
+            { id: 'backup', label: 'Backup e Restauração' },
+            { id: 'temas', label: 'Tema e Paleta de Cores' },
+            { id: 'ordem', label: 'Gerenciar Ordem dos Blocos' }
+        ];
+        let currentBlockOrder = []; // Será carregado do localStorage
+
+        // Armazena os elementos DOM dos blocos para evitar recriá-los
+        const OPTIONS_BLOCK_ELEMENTS = new Map();
+
+
+        // --- GRÁFICOS: Instâncias Globais ---
+        let typeChartInstance;
+        let monthlyChaptersChartInstance;
+
+        // --- CORES ESTÁTICAS PARA GRÁFICOS ---
+        const GRAPH_COLORS = {
+            Other: 'rgb(107, 114, 128, 0.9)', // Gray 500
+            Anime: 'rgb(220, 38, 38, 0.9)',    // Red 600
+            Novel: 'rgb(234, 179, 8, 0.9)',    // Yellow 600
+            Total: 'rgb(255, 255, 255, 0.1)' // White transparent
+        };
+
+        // --- ESTADO DE INICIALIZAÇÃO DAS ABAS (Lazy Loading) ---
+        let trackerInitialized = false;
+        let optionsInitialized = false;
+
+        // --- OBJETOS DE REFERÊNCIA DOM (Lazy Loaded) ---
+        let DOM_GLOBAL = {};
+        let DOM_TRACKER = {};
+        let DOM_OPTIONS = {};
+
+
+        // Função switchTab movida para fora de setupTabNavigation para garantir escopo global/módulo
+        function switchTab(targetTab) {
+            const tabs = {
+                'tracker': { button: document.getElementById('tab-tracker'), content: document.getElementById('tracker-section') },
+                'info': { button: document.getElementById('tab-info'), content: document.getElementById('info-section') },
+                'links': { button: document.getElementById('tab-links'), content: document.getElementById('links-section') },
+                'charts': { button: document.getElementById('tab-charts'), content: document.getElementById('charts-content') },
+                'report': { button: document.getElementById('tab-report'), content: document.getElementById('report-content') },
+                'reminders': { button: document.getElementById('tab-reminders'), content: document.getElementById('reminders-section') },
+                'options': { button: document.getElementById('tab-options'), content: document.getElementById('options-section') }
+            };
+
+            const isAuthReady = db || isLocalMode;
+            if (!isAuthReady) return;
+
+            Object.keys(tabs).forEach(tabId => {
+                const tab = tabs[tabId];
+                if (!tab || !tab.content) return;
+
+                const isActive = tabId === targetTab;
+
+                tab.content.classList.toggle('hidden', !isActive);
+                tab.button.classList.toggle('active-tab', isActive);
+
+                if (isActive) {
+                    const theme = THEME_PALETTES[currentThemeIndex];
+                    tab.button.classList.add('border-primary');
+                    tab.button.style.borderColor = theme.primary;
+                    tab.button.style.color = theme.primary;
+                    tab.button.classList.remove('border-transparent', 'text-gray-400');
+
+                    // Mostra/Oculta a barra de busca
+                    DOM_GLOBAL.globalSearchContainer.classList.toggle('hidden', tabId !== 'tracker');
+
+                    // Inicialização "Lazy" das Abas
+                    if (tabId === 'tracker' && !trackerInitialized) {
+                        initializeTrackerListeners();
+                        trackerInitialized = true;
+                    } else if (tabId === 'options' && !optionsInitialized) {
+                        initializeOptionsListeners();
+                        optionsInitialized = true;
+                    }
+
+                    // Renderização dinâmica ao abrir a aba
+                    if (tabId === 'charts') {
+                        renderCharts(allEntries);
+                    } else if (tabId === 'links') {
+                        renderLinkList();
+                    } else if (tabId === 'reminders') {
+                        renderReminders();
+                    }
+                } else {
+                    tab.button.classList.remove('border-primary');
+                    tab.button.classList.add('border-transparent', 'text-gray-400');
+                    tab.button.style.borderColor = '';
+                    tab.button.style.color = '';
+                }
+            });
+        }
+
+        // --- FUNÇÕES DE INICIALIZAÇÃO (Lazy Loading) ---
+
+        /**
+         * Obtém referências para elementos DOM GLOBAIS (Modais, Abas).
+         * Chamado uma vez no window.onload.
+         */
+        function initializeAppListeners() {
+            // Modais Globais
+            DOM_GLOBAL.formModal = document.getElementById('form-modal');
+            DOM_GLOBAL.closeFormModalButton = document.getElementById('close-form-modal');
+            DOM_GLOBAL.detailsModal = document.getElementById('details-modal');
+            DOM_GLOBAL.closeDetailsModalButton = document.getElementById('close-details-modal');
+            DOM_GLOBAL.customModal = document.getElementById('custom-modal');
+            DOM_GLOBAL.modalConfirm = document.getElementById('modal-confirm');
+            DOM_GLOBAL.modalCancel = document.getElementById('modal-cancel');
+            DOM_GLOBAL.modalTitle = document.getElementById('modal-title');
+            DOM_GLOBAL.modalMessage = document.getElementById('modal-message');
+            DOM_GLOBAL.authStatus = document.getElementById('auth-status');
+            DOM_GLOBAL.loadingIndicator = document.getElementById('loading-indicator');
+
+            // Botões de Abas
+            DOM_GLOBAL.tabTrackerButton = document.getElementById('tab-tracker');
+            DOM_GLOBAL.tabInfoButton = document.getElementById('tab-info'); // NOVO
+            DOM_GLOBAL.tabLinksButton = document.getElementById('tab-links');
+            DOM_GLOBAL.tabChartsButton = document.getElementById('tab-charts');
+            DOM_GLOBAL.tabReportButton = document.getElementById('tab-report');
+            DOM_GLOBAL.tabRemindersButton = document.getElementById('tab-reminders');
+            DOM_GLOBAL.tabOptionsButton = document.getElementById('tab-options');
+
+            // Outros Globais
+            DOM_GLOBAL.rocketToggle = document.getElementById('rocket-toggle');
+            DOM_GLOBAL.globalSearchContainer = document.getElementById('global-search-container'); // Container da busca
+            DOM_GLOBAL.reminderCountTab = document.getElementById('reminder-count-tab');
+            DOM_GLOBAL.remindersTotalCountSpan = document.getElementById('reminders-total-count');
+
+            // Listeners Globais
+            DOM_GLOBAL.closeFormModalButton.addEventListener('click', closeFormModal);
+            DOM_GLOBAL.closeDetailsModalButton.addEventListener('click', closeDetailsModal);
+            DOM_GLOBAL.rocketToggle.addEventListener('click', toggleTheme);
+
+            // Listeners das Abas
+            DOM_GLOBAL.tabTrackerButton.addEventListener('click', () => switchTab('tracker'));
+            DOM_GLOBAL.tabInfoButton.addEventListener('click', () => switchTab('info')); // NOVO
+            DOM_GLOBAL.tabLinksButton.addEventListener('click', () => switchTab('links'));
+            DOM_GLOBAL.tabChartsButton.addEventListener('click', () => switchTab('charts'));
+            DOM_GLOBAL.tabReportButton.addEventListener('click', () => switchTab('report'));
+            DOM_GLOBAL.tabRemindersButton.addEventListener('click', () => switchTab('reminders'));
+            DOM_GLOBAL.tabOptionsButton.addEventListener('click', () => switchTab('options'));
+        }
+
+        /**
+         * Obtém referências e anexa listeners para a Aba TRACKER.
+         * Chamado na primeira vez que a aba 'tracker' é aberta.
+         */
+        function initializeTrackerListeners() {
+            // Formulário (parcialmente global, mas usado pelo tracker)
+            DOM_TRACKER.entryForm = document.getElementById('entry-form');
+            DOM_TRACKER.genresCheckboxContainer = document.getElementById('genres-checkbox-container');
+            DOM_TRACKER.linkInput = document.getElementById('link');
+            DOM_TRACKER.nameInput = document.getElementById('name');
+            DOM_TRACKER.totalChaptersInput = document.getElementById('totalChapters');
+            DOM_TRACKER.chaptersReadInput = document.getElementById('chaptersRead');
+            DOM_TRACKER.scoreInput = document.getElementById('score');
+            DOM_TRACKER.workTypeInput = document.getElementById('workType');
+            DOM_TRACKER.descriptionInput = document.getElementById('description');
+            DOM_TRACKER.entryIdInput = document.getElementById('entry-id');
+            DOM_TRACKER.statusInput = document.getElementById('status');
+            DOM_TRACKER.submitButton = document.getElementById('submit-button');
+            DOM_TRACKER.submitText = document.getElementById('submit-text');
+            DOM_TRACKER.cancelEditButton = document.getElementById('cancel-edit-button');
+            DOM_TRACKER.formModalTitle = document.getElementById('form-modal-title');
+            DOM_TRACKER.existingEntryMessage = document.getElementById('existing-entry-message'); // Novo elemento
+
+            // Elementos da Tabela
+            DOM_TRACKER.entriesList = document.getElementById('entries-list');
+            DOM_TRACKER.bulkHeader = document.getElementById('bulk-delete-header');
+
+            // Controles do Tracker
+            DOM_TRACKER.openFormModalButton = document.getElementById('open-form-modal-button');
+            DOM_TRACKER.startBulkDeleteButton = document.getElementById('start-bulk-delete-button');
+            DOM_TRACKER.globalSearchInput = document.getElementById('global-search-input');
+
+            // Filtros
+            DOM_TRACKER.filterAccordionContent = document.getElementById('filter-accordion-content');
+            DOM_TRACKER.toggleFilterButton = document.getElementById('toggle-filter-button');
+            DOM_TRACKER.toggleIcon = document.getElementById('toggle-icon');
+            DOM_TRACKER.genreFilterContainer = document.getElementById('genre-filter-container');
+            DOM_TRACKER.columnFilterContainer = document.getElementById('column-filter-container');
+            DOM_TRACKER.applyFilterButton = document.getElementById('apply-filter-button');
+            DOM_TRACKER.clearFilterButton = document.getElementById('clear-filter-button');
+
+            // Listeners do Tracker
+            DOM_TRACKER.openFormModalButton.addEventListener('click', () => {
+                if (bulkDeleteMode) exitBulkDeleteMode();
+                resetForm();
+                openFormModal();
+            });
+
+            DOM_TRACKER.entryForm.addEventListener('submit', handleFormSubmit);
+            DOM_TRACKER.cancelEditButton.addEventListener('click', closeFormModal);
+
+            // NOVO: Listener para sugestão de dados ao digitar o nome
+            DOM_TRACKER.nameInput.addEventListener('input', checkExistingEntry);
+
+            DOM_TRACKER.linkInput.addEventListener('input', () => {
+                const link = DOM_TRACKER.linkInput.value.trim();
+                if (link) {
+                    const parsed = parseLink(link);
+                    if (parsed) {
+                        // Não sobrescreve o nome se já estiver preenchido (se estiver editando)
+                        DOM_TRACKER.nameInput.value = DOM_TRACKER.nameInput.value || parsed.name;
+                        // Se for link base (capítulos 0) e o usuário já digitou um valor, mantém o que ele digitou
+                        if (parsed.chaptersRead > 0 || DOM_TRACKER.chaptersReadInput.value === '0') {
+                            DOM_TRACKER.chaptersReadInput.value = parsed.chaptersRead;
+                        }
+                        checkExistingEntry(); // Verifica se o nome preenchido é de uma obra existente
+                    }
+                }
+            });
+
+            DOM_TRACKER.globalSearchInput.addEventListener('input', () => {
+                globalSearchTerm = DOM_TRACKER.globalSearchInput.value.trim();
+                sortEntries();
+            });
+
+            DOM_TRACKER.startBulkDeleteButton.addEventListener('click', () => {
+                if (!bulkDeleteMode) {
+                    enterBulkDeleteMode();
+                } else {
+                    deleteSelectedEntries();
+                }
+            });
+
+            DOM_TRACKER.applyFilterButton.addEventListener('click', applyFilters);
+            DOM_TRACKER.clearFilterButton.addEventListener('click', clearFilters);
+
+            // ABRIR/FECHAR FILTRO: Reaplicar filtros ao abrir
+            DOM_TRACKER.toggleFilterButton.addEventListener('click', () => {
+                const isHidden = DOM_TRACKER.filterAccordionContent.classList.toggle('hidden');
+                DOM_TRACKER.toggleIcon.textContent = isHidden ? '▼' : '▲';
+                if (!isHidden) {
+                    // Re-renderiza e aplica o filtro para garantir que a UI esteja correta
+                    renderFilterCheckboxes();
+                    renderColumnFilterCheckboxes();
+                }
+            });
+
+            // CORREÇÃO: Renderiza os filtros e setupa a ordenação AQUI
+            renderFilterCheckboxes();
+            setupSortingListeners();
+
+            // Força o filtro na inicialização da aba (Corrigindo o problema de "sumir")
+            sortEntries();
+        }
+
+        /**
+         * Obtém referências e anexa listeners para a Aba OPTIONS.
+         * Chamado na primeira vez que a aba 'options' é aberta.
+         */
+        function initializeOptionsListeners() {
+            // Abas
+            DOM_OPTIONS.tabVisibilityContainer = document.getElementById('tab-visibility-container');
+
+            // Tema
+            DOM_OPTIONS.themeButtonsContainer = document.getElementById('theme-buttons-container');
+
+            // Lembretes
+            DOM_OPTIONS.reminderDaysThresholdInput = document.getElementById('reminder-days-threshold');
+            DOM_OPTIONS.saveReminderSettingsButton = document.getElementById('save-reminder-settings-button');
+            DOM_OPTIONS.reminderTimeInput = document.getElementById('reminder-time-input'); // Novo
+            DOM_OPTIONS.reminderDaysConfigSpan = document.getElementById('reminder-days-config');
+
+            // Gêneros
+            DOM_OPTIONS.newGenreInput = document.getElementById('new-genre-input');
+            DOM_OPTIONS.addGenreButton = document.getElementById('add-genre-button');
+            DOM_OPTIONS.genresManagementList = document.getElementById('genres-management-list');
+
+            // Links
+            DOM_OPTIONS.newLinkNameInput = document.getElementById('new-link-name-input');
+            DOM_OPTIONS.newLinkUrlInput = document.getElementById('new-link-url-input');
+            DOM_OPTIONS.addLinkButton = document.getElementById('add-link-button');
+            DOM_OPTIONS.linksManagementList2 = document.getElementById('links-management-list-2');
+            DOM_OPTIONS.linksContainer = document.getElementById('links-container');
+            DOM_OPTIONS.linksNoData = document.getElementById('links-no-data');
+
+            // Backup/Restore
+            DOM_OPTIONS.exportJsonButton = document.getElementById('export-json-button');
+            DOM_OPTIONS.importJsonButton = document.getElementById('import-json-button');
+            DOM_OPTIONS.importFileInput = document.getElementById('import-file-input');
+            DOM_OPTIONS.lastExportDate = document.getElementById('last-export-date');
+            DOM_OPTIONS.lastImportDate = document.getElementById('last-import-date');
+            DOM_OPTIONS.backupReminderDaysInput = document.getElementById('backup-reminder-days');
+            DOM_OPTIONS.saveBackupReminderButton = document.getElementById('save-backup-reminder-button');
+
+            // Ordem dos Blocos
+            DOM_OPTIONS.optionsLayoutGrid = document.getElementById('options-layout-grid');
+            DOM_OPTIONS.blockOrderList = document.getElementById('block-order-list');
+
+            // Listeners das Opções
+            DOM_OPTIONS.saveReminderSettingsButton.addEventListener('click', saveReminderSettings);
+
+            DOM_OPTIONS.addGenreButton.addEventListener('click', addCustomGenre);
+            DOM_OPTIONS.newGenreInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); addCustomGenre(); }
+            });
+
+            DOM_OPTIONS.addLinkButton.addEventListener('click', addLink);
+            DOM_OPTIONS.newLinkUrlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); addLink(); }
+            });
+
+            DOM_OPTIONS.exportJsonButton.addEventListener('click', () => {
+                const date = new Date().toISOString().slice(0, 10);
+                exportToJson(`manga_tracker_backup_${date}.json`, allEntries);
+            });
+            DOM_OPTIONS.importJsonButton.addEventListener('click', () => DOM_OPTIONS.importFileInput.click());
+            DOM_OPTIONS.importFileInput.addEventListener('change', handleJsonImport);
+
+            // NOVO: Listener para salvar lembrete de backup
+            DOM_OPTIONS.saveBackupReminderButton.addEventListener('click', saveBackupReminderSettings);
+
+            // CORREÇÃO: Força o carregamento das datas de backup ao inicializar a aba Opções
+            loadSettings();
+
+            // Renderiza o layout e as listas de gerenciamento
+            renderOptionsLayout();
+            renderThemeButtons();
+            renderTabManagement();
+            renderGenreManagementList();
+            renderLinkList();
+            renderBlockOrderList();
+        }
+
+        // --- FUNÇÕES DE NAVEGAÇÃO E INICIALIZAÇÃO PRINCIPAL ---
+
+        /**
+         * Ponto de entrada principal. Chamado no window.onload.
+         */
+        async function main() {
+            // 1. Anexa listeners globais (abas, modais)
+            initializeAppListeners();
+
+            // 2. Inicializa o Firebase (carrega dados e configurações)
+            await initializeFirebase();
+
+            // 3. Configura a navegação e abre a aba padrão ('tracker')
+            switchTab('tracker');
+
+            // CORREÇÃO DO ERRO DE REFERÊNCIA: Adicionar o listener ao botão de backup DEPOIS que o DOM está pronto e a função switchTab está definida
+            const backupButton = document.getElementById('reminders-backup-button');
+            if (backupButton) {
+                backupButton.addEventListener('click', () => switchTab('options'));
+            }
+        }
+
+        async function initializeFirebase() {
+            // Carrega configurações locais (Tema, Gêneros, Links, Filtros etc.)
+            loadTheme();
+            loadGenres();
+            loadLinks();
+            // loadSettings() é chamado aqui para carregar todos os thresholds e datas
+            loadSettings();
+            loadTabVisibility();
+            loadColumnVisibility();
+            loadActiveGenreFilters();
+            loadBlockOrder();
+
+            try {
+                if (!firebaseConfig.projectId) {
+                    console.warn("Firebase Configuração Ausente. Iniciando em Modo Local (localStorage).");
+                    isLocalMode = true;
+                    DOM_GLOBAL.authStatus.textContent = 'Modo Local (Dados salvos no seu navegador)';
+                    db = { isMock: true };
+                    auth = { currentUser: { uid: 'local-user' } };
+                    loadLocalData();
+                    return;
+                }
+
+                // Tenta Inicialização Remota (Canvas)
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                isLocalMode = false;
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        DOM_GLOBAL.authStatus.textContent = `Usuário autenticado: ${userId}`;
+                        setupDataListener();
+                        // O sortEntries é chamado no setupDataListener
+                    } else {
+                        userId = null;
+                        DOM_GLOBAL.authStatus.textContent = 'Autenticação em progresso...';
+                    }
+                });
+            } catch (error) {
+                console.error("Erro FATAL ao inicializar Firebase. Verificando fallback...", error);
+                if (!isLocalMode) {
+                    isLocalMode = true;
+                    DOM_GLOBAL.authStatus.textContent = 'Modo Local Ativo (Erro no Firebase). Dados salvos no seu navegador.';
+                    db = { isMock: true };
+                    auth = { currentUser: { uid: 'local-user' } };
+                    loadLocalData();
+                }
+            }
+        }
+
+        // --- FUNÇÕES DE PERSISTÊNCIA DE CONFIGURAÇÕES (LocalStorage) ---
+
+        function loadSettings() {
+            // Carrega threshold de lembrete de leitura
+            const storedDays = localStorage.getItem(REMINDER_STORAGE_KEY);
+            reminderDaysThreshold = storedDays ? parseInt(storedDays, 10) : 7;
+
+            // Carrega threshold de lembrete de backup
+            const storedBackupDays = localStorage.getItem(BACKUP_REMINDER_DAYS_KEY);
+            backupReminderDays = storedBackupDays ? parseInt(storedBackupDays, 10) : 1;
+
+            // Atualiza UI de Lembretes de Leitura
+            const daysInput = document.getElementById('reminder-days-threshold');
+            const daysConfigSpan = document.getElementById('reminder-days-config');
+
+            if (daysInput) {
+                daysInput.value = reminderDaysThreshold;
+            }
+            if (daysConfigSpan) {
+                daysConfigSpan.textContent = `${reminderDaysThreshold} dias`;
+            }
+
+            // Atualiza UI de Lembretes de Backup
+            const backupDaysInput = document.getElementById('backup-reminder-days');
+            if (backupDaysInput) {
+                backupDaysInput.value = backupReminderDays;
+            }
+
+            // Carrega datas de Backup/Restauração (Persistência Corrigida)
+            const lastExport = document.getElementById('last-export-date');
+            const lastImport = document.getElementById('last-import-date');
+
+            if (lastExport) {
+                lastExport.textContent = formatLastUsageDate(localStorage.getItem(LAST_EXPORT_KEY));
+            }
+            if (lastImport) {
+                lastImport.textContent = formatLastUsageDate(localStorage.getItem(LAST_IMPORT_KEY));
+            }
+        }
+
+        function saveBackupReminderSettings() {
+            if (!DOM_OPTIONS.backupReminderDaysInput) return;
+            const newDays = parseInt(DOM_OPTIONS.backupReminderDaysInput.value, 10);
+
+            if (newDays > 0) {
+                backupReminderDays = newDays;
+                localStorage.setItem(BACKUP_REMINDER_DAYS_KEY, backupReminderDays);
+                showCustomConfirm(`Alerta de Backup salvo: ${backupReminderDays} dias.`).then(() => { });
+                renderReminders();
+            } else {
+                showCustomConfirm("O número de dias para o alerta de backup deve ser maior que zero.").then(() => { });
+            }
+        }
+
+        function formatLastUsageDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(parseInt(timestamp, 10));
+            return `Última utilização: ${date.toLocaleString('pt-BR')}`;
+        }
+
+        function saveReminderSettings() {
+            const newThreshold = parseInt(DOM_OPTIONS.reminderDaysThresholdInput.value, 10);
+            // CORREÇÃO: Permite -1 para testes
+            if (newThreshold >= -1) {
+                reminderDaysThreshold = newThreshold;
+                localStorage.setItem(REMINDER_STORAGE_KEY, reminderDaysThreshold);
+                DOM_OPTIONS.reminderDaysConfigSpan.textContent = `${reminderDaysThreshold} dias`;
+                showCustomConfirm(`Alerta de atraso salvo: ${reminderDaysThreshold} dias.`).then(() => { });
+                renderReminders();
+            } else {
+                showCustomConfirm("O número de dias deve ser maior ou igual a -1.").then(() => { });
+            }
+        }
+
+        function loadTabVisibility() {
+            try {
+                const storedVisibility = localStorage.getItem(VISIBLE_TABS_STORAGE_KEY);
+                visibleTabs = storedVisibility ? JSON.parse(storedVisibility) : {};
+                // Define padrões se não houver nada salvo
+                CONTROLLABLE_TABS.forEach(tab => {
+                    // Se a tab não está no storage, usa o padrão definido na lista CONTROLLABLE_TABS
+                    if (visibleTabs[tab.id] === undefined) {
+                        visibleTabs[tab.id] = tab.default;
+                    }
+                });
+            } catch (e) {
+                console.error("Erro ao carregar visibilidade de abas.", e);
+            }
+            applyTabVisibility();
+        }
+
+        function saveTabVisibility() {
+            localStorage.setItem(VISIBLE_TABS_STORAGE_KEY, JSON.stringify(visibleTabs));
+        }
+
+        function applyTabVisibility() {
+            CONTROLLABLE_TABS.forEach(tab => {
+                const button = document.getElementById(`tab-${tab.id}`); // Pega o botão de aba
+                if (button) {
+                    // Oculta se não estiver visível
+                    button.classList.toggle('hidden', !visibleTabs[tab.id]);
+                }
+            });
+            // Renderiza os checkboxes (só se a aba opções for carregada)
+            if (optionsInitialized) {
+                renderTabManagement();
+            }
+        }
+
+        function renderTabManagement() {
+            if (!DOM_OPTIONS.tabVisibilityContainer) return;
+            DOM_OPTIONS.tabVisibilityContainer.innerHTML = '';
+
+            // Filtra a lista para remover a aba 'options', que agora é sempre visível
+            const manageableTabs = CONTROLLABLE_TABS.filter(tab => tab.id !== 'options');
+
+            manageableTabs.forEach(tab => {
+                const isVisible = visibleTabs[tab.id];
+                const label = document.createElement('label');
+                label.className = "flex items-center text-sm text-gray-300 select-none cursor-pointer";
+                label.innerHTML = `
+                        <input type="checkbox" data-tab-id="${tab.id}" ${isVisible ? 'checked' : ''} 
+                            class="tab-visibility-checkbox h-4 w-4 text-primary bg-gray-600 border-gray-500 rounded focus:ring-primary">
+                        <span class="ml-2">${tab.label}</span>
+                    `;
+                DOM_OPTIONS.tabVisibilityContainer.appendChild(label);
+            });
+
+            DOM_OPTIONS.tabVisibilityContainer.querySelectorAll('.tab-visibility-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const tabId = e.target.dataset.tabId;
+                    visibleTabs[tabId] = e.target.checked;
+                    saveTabVisibility();
+                    applyTabVisibility();
+                });
+            });
+        }
+
+        // --- Funções de Tema ---
+
+        function loadTheme() {
+            const savedIndex = localStorage.getItem(THEME_STORAGE_KEY);
+            currentThemeIndex = savedIndex !== null ? parseInt(savedIndex, 10) : 0;
+            if (currentThemeIndex >= THEME_PALETTES.length || isNaN(currentThemeIndex)) {
+                currentThemeIndex = 0;
+            }
+            THEME_PALETTES.forEach(theme => theme.warning = '#f59e0b');
+            applyTheme(currentThemeIndex);
+        }
+
+        function applyTheme(index) {
+            const theme = THEME_PALETTES[index];
+            const root = document.documentElement;
+
+            root.style.setProperty('--color-primary', theme.primary);
+            root.style.setProperty('--color-secondary', theme.secondary);
+            root.style.setProperty('--color-background', theme.background);
+            root.style.setProperty('--color-header', theme.header);
+            root.style.setProperty('--color-warning', theme.warning || '#f59e0b');
+
+            localStorage.setItem(THEME_STORAGE_KEY, index);
+
+            if (document.getElementById('charts-content') && !document.getElementById('charts-content').classList.contains('hidden')) {
+                renderCharts(allEntries);
+            }
+
+            // Atualiza o estado visual das abas ativas
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('border-primary', 'text-[var(--color-primary)]');
+                if (btn.classList.contains('active-tab')) {
+                    btn.classList.add('border-primary');
+                    btn.style.borderColor = theme.primary;
+                    btn.style.color = theme.primary;
+                } else {
+                    btn.classList.add('border-transparent', 'text-gray-400');
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }
+            });
+        }
+
+        function toggleTheme() {
+            currentThemeIndex = (currentThemeIndex + 1) % THEME_PALETTES.length;
+            applyTheme(currentThemeIndex);
+            if (optionsInitialized) {
+                renderThemeButtons(); // Atualiza os botões de cor
+            }
+        }
+
+        function renderThemeButtons() {
+            if (!DOM_OPTIONS.themeButtonsContainer) return;
+            DOM_OPTIONS.themeButtonsContainer.innerHTML = '';
+
+            THEME_PALETTES.forEach((theme, index) => {
+                const button = document.createElement('button');
+                button.textContent = theme.id;
+                button.className = `py-3 px-2 rounded-lg text-white font-semibold transition duration-200 shadow-md text-xs sm:text-sm`;
+                button.style.backgroundColor = theme.primary;
+                button.style.boxShadow = `0 4px 6px -1px ${theme.primary}50, 0 2px 4px -2px ${theme.primary}50`;
+
+                if (index === currentThemeIndex) {
+                    button.classList.add('ring-2', 'ring-offset-2', 'ring-white');
+                }
+
+                button.addEventListener('click', () => {
+                    currentThemeIndex = index;
+                    applyTheme(index);
+                    renderThemeButtons();
+                });
+                DOM_OPTIONS.themeButtonsContainer.appendChild(button);
+            });
+        }
+
+        // --- Funções de Gênero (Persistência e UI) ---
+
+        function saveGenres() {
+            localStorage.setItem(GENRES_STORAGE_KEY, JSON.stringify(STANDARD_GENRES));
+        }
+
+        function loadGenres() {
+            try {
+                const storedGenres = localStorage.getItem(GENRES_STORAGE_KEY);
+                STANDARD_GENRES = storedGenres ? JSON.parse(storedGenres) : [...DEFAULT_GENRES];
+            } catch (e) {
+                console.error("Erro ao carregar gêneros locais. Usando padrão.", e);
+                STANDARD_GENRES = [...DEFAULT_GENRES];
+            }
+            STANDARD_GENRES.sort((a, b) => a.localeCompare(b));
+        }
+
+        // Renderiza a lista de gerenciamento na aba Opções
+        function renderGenreManagementList() {
+            if (!DOM_OPTIONS.genresManagementList) return;
+            DOM_OPTIONS.genresManagementList.innerHTML = '';
+
+            STANDARD_GENRES.forEach(genre => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2 bg-gray-700 rounded-lg border border-gray-600';
+                item.innerHTML = `
+                        <span class="text-sm text-gray-300 truncate max-w-[80%]">${genre}</span>
+                        <button type="button" data-genre-remove="${genre}" class="remove-genre-btn text-gray-500 hover:text-danger opacity-80 hover:opacity-100 transition duration-150 p-1 rounded-full ml-2 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    `;
+                DOM_OPTIONS.genresManagementList.appendChild(item);
+            });
+
+            DOM_OPTIONS.genresManagementList.querySelectorAll('.remove-genre-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const genreToRemove = button.dataset.genreRemove;
+                    removeGenre(genreToRemove);
+                });
+            });
+        }
+
+        function addCustomGenre() {
+            const newGenre = DOM_OPTIONS.newGenreInput.value.trim();
+            if (newGenre && !STANDARD_GENRES.includes(newGenre)) {
+                STANDARD_GENRES.push(newGenre);
+                STANDARD_GENRES.sort((a, b) => a.localeCompare(b));
+                saveGenres();
+
+                renderGenreManagementList();
+                if (trackerInitialized) {
+                    renderGenreCheckboxes(DOM_TRACKER.genresCheckboxContainer.id);
+                    renderFilterCheckboxes();
+                }
+                DOM_OPTIONS.newGenreInput.value = '';
+                showCustomConfirm(`Gênero "${newGenre}" adicionado com sucesso!`).then(() => { });
+            } else if (newGenre) {
+                DOM_OPTIONS.newGenreInput.value = '';
+                showCustomConfirm(`Gênero "${newGenre}" já existe ou é inválido.`).then(() => { });
+            }
+        }
+
+        function removeGenre(genreToRemove) {
+            showCustomConfirm(`Tem certeza que deseja remover o gênero "${genreToRemove}" da lista de opções? Isso não afetará obras já cadastradas.`)
+                .then(confirmed => {
+                    if (confirmed) {
+                        STANDARD_GENRES = STANDARD_GENRES.filter(g => g !== genreToRemove);
+                        activeGenreFilters = activeGenreFilters.filter(g => g !== genreToRemove);
+                        saveGenres();
+                        saveActiveGenreFilters(); // Salva os filtros ativos atualizados
+
+                        renderGenreManagementList();
+                        if (trackerInitialized) {
+                            renderFilterCheckboxes();
+                            renderGenreCheckboxes(DOM_TRACKER.genresCheckboxContainer.id);
+                            sortEntries();
+                        }
+                    }
+                });
+        }
+
+        // --- Funções de Links (Persistência e UI) ---
+
+        function saveLinks() {
+            localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(STANDARD_LINKS));
+        }
+
+        function loadLinks() {
+            try {
+                const storedLinks = localStorage.getItem(LINKS_STORAGE_KEY);
+                STANDARD_LINKS = storedLinks ? JSON.parse(storedLinks) : [...DEFAULT_LINKS];
+            } catch (e) {
+                console.error("Erro ao carregar links locais. Usando padrão.", e);
+                STANDARD_LINKS = [...DEFAULT_LINKS];
+            }
+            STANDARD_LINKS.sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        // Renderiza na Aba Links (botões) e Aba Opções (gerenciamento)
+        function renderLinkList() {
+            // Aba Links
+            const linksContainer = document.getElementById('links-container'); // Pode ser chamado antes de options init
+            const linksNoData = document.getElementById('links-no-data');
+
+            if (linksContainer) {
+                linksContainer.innerHTML = '';
+                if (STANDARD_LINKS.length === 0) {
+                    linksNoData.classList.remove('hidden');
+                } else {
+                    linksNoData.classList.add('hidden');
+                    STANDARD_LINKS.forEach(link => {
+                        const linkButton = document.createElement('a');
+                        linkButton.href = link.url;
+                        linkButton.target = '_blank';
+                        linkButton.className = 'flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition duration-150 shadow-md text-white font-medium truncate';
+                        linkButton.innerHTML = `
+                                <span class="truncate">${link.name}</span>
+                                <svg class="w-5 h-5 text-primary ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            `;
+                        linksContainer.appendChild(linkButton);
+                    });
+                }
+            }
+
+            // Aba Opções (Gerenciamento)
+            if (DOM_OPTIONS.linksManagementList2) {
+                DOM_OPTIONS.linksManagementList2.innerHTML = '';
+                STANDARD_LINKS.forEach(link => {
+                    const manageItem = document.createElement('div');
+                    manageItem.className = 'flex items-center justify-between p-2 bg-gray-700 rounded-lg border border-gray-600';
+                    manageItem.innerHTML = `
+                            <span class="text-sm text-gray-300 truncate max-w-[80%]">${link.name}</span>
+                            <button type="button" data-link-url="${link.url}" class="remove-link-btn text-gray-500 hover:text-danger opacity-80 hover:opacity-100 transition duration-150 p-1 rounded-full ml-2 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        `;
+                    DOM_OPTIONS.linksManagementList2.appendChild(manageItem);
+                });
+
+                DOM_OPTIONS.linksManagementList2.querySelectorAll('.remove-link-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const urlToRemove = button.dataset.linkUrl;
+                        removeLink(urlToRemove);
+                    });
+                });
+            }
+        }
+
+        function addLink() {
+            const name = DOM_OPTIONS.newLinkNameInput.value.trim();
+            const url = DOM_OPTIONS.newLinkUrlInput.value.trim();
+
+            if (!name || !url) {
+                showCustomConfirm("Por favor, preencha o nome e a URL para adicionar o link.").then(() => { });
+                return;
+            }
+            try { new URL(url); } catch (_) {
+                showCustomConfirm("A URL fornecida é inválida. Certifique-se de incluir http:// ou https://").then(() => { });
+                return;
+            }
+            if (STANDARD_LINKS.some(link => link.url === url)) {
+                showCustomConfirm("Este link já existe na sua lista.").then(() => { });
+                return;
+            }
+
+            STANDARD_LINKS.push({ name, url });
+            STANDARD_LINKS.sort((a, b) => a.name.localeCompare(b.name));
+            saveLinks();
+            renderLinkList(); // Atualiza ambas as listas
+
+            DOM_OPTIONS.newLinkNameInput.value = '';
+            DOM_OPTIONS.newLinkUrlInput.value = '';
+            showCustomConfirm(`Link "${name}" adicionado com sucesso!`).then(() => { });
+        }
+
+        function removeLink(urlToRemove) {
+            const linkName = STANDARD_LINKS.find(link => link.url === urlToRemove)?.name || 'Este link';
+
+            showCustomConfirm(`Tem certeza que deseja remover "${linkName}" da lista de links favoritos?`)
+                .then(confirmed => {
+                    if (confirmed) {
+                        STANDARD_LINKS = STANDARD_LINKS.filter(link => link.url !== urlToRemove);
+                        saveLinks();
+                        renderLinkList();
+                        showCustomConfirm(`${linkName} removido com sucesso!`).then(() => { });
+                    }
+                });
+        }
+
+        // --- FUNÇÕES DE ORDENAÇÃO DE BLOCOS (Aba Opções) ---
+
+        function loadBlockOrder() {
+            try {
+                const storedOrder = localStorage.getItem(BLOCK_ORDER_KEY);
+                if (storedOrder) {
+                    currentBlockOrder = JSON.parse(storedOrder);
+                    // Validação: Garante que todos os blocos definidos existem na ordem salva
+                    if (currentBlockOrder.length !== OPTIONS_BLOCK_IDS.length) {
+                        // Se a lista de IDs mudou, recalcula a ordem
+                        const existingIds = new Set(currentBlockOrder);
+                        const defaultIds = OPTIONS_BLOCK_IDS.map(b => b.id);
+
+                        // Cria nova ordem, mantendo os existentes na ordem salva e adicionando novos no final
+                        let newOrder = currentBlockOrder.filter(id => defaultIds.includes(id));
+                        defaultIds.forEach(id => {
+                            if (!existingIds.has(id)) {
+                                newOrder.push(id);
+                            }
+                        });
+                        currentBlockOrder = newOrder;
+                        saveBlockOrder(false);
+                        throw new Error("Ordem de blocos desatualizada, reajustando.");
+                    }
+                } else {
+                    throw new Error("Nenhuma ordem salva.");
+                }
+            } catch (e) {
+                console.warn("Ordem de blocos inválida ou ausente. Resetando para o padrão.", e.message);
+                currentBlockOrder = OPTIONS_BLOCK_IDS.map(b => b.id);
+                saveBlockOrder(false); // Salva a ordem padrão sem notificar
+            }
+        }
+
+        function saveBlockOrder(notify = true) {
+            localStorage.setItem(BLOCK_ORDER_KEY, JSON.stringify(currentBlockOrder));
+            if (notify) {
+                showCustomConfirm("Ordem dos blocos salva!").then(() => { });
+            }
+        }
+
+        /**
+         * Obtém o elemento DOM de um bloco do #options-blocks-source
+         * e o armazena no Map OPTIONS_BLOCK_ELEMENTS se for a primeira vez.
+         */
+        function getBlockElementById(blockId) {
+            // 1. Verifica se já buscamos e armazenamos este elemento
+            if (OPTIONS_BLOCK_ELEMENTS.has(blockId)) {
+                return OPTIONS_BLOCK_ELEMENTS.get(blockId);
+            }
+
+            // 2. Se não, busca no DOM (no container de origem)
+            const blockElement = document.getElementById(`block-${blockId}`);
+
+            if (blockElement) {
+                // 3. Armazena no Map para uso futuro
+                OPTIONS_BLOCK_ELEMENTS.set(blockId, blockElement);
+                return blockElement;
+            }
+
+            console.error(`Elemento de bloco não encontrado no DOM: #block-${blockId}`);
+            return null;
+        }
+
+        /**
+         * Renderiza os blocos na grelha de Opções, respeitando a ordem salva.
+         */
+        function renderOptionsLayout() {
+            const grid = DOM_OPTIONS.optionsLayoutGrid;
+            if (!grid) return; // Segurança
+
+            // Itera sobre a ordem salva
+            currentBlockOrder.forEach(blockId => {
+                const blockElement = getBlockElementById(blockId);
+                if (blockElement) {
+                    // Anexa o elemento à grelha.
+                    // Como os elementos já estão no Map, isto apenas os REORDENA.
+                    grid.appendChild(blockElement);
+                }
+            });
+        }
+
+        // Renderiza a lista de gerenciamento de ordem
+        function renderBlockOrderList() {
+            const list = DOM_OPTIONS.blockOrderList;
+            if (!list) return; // Segurança
+            list.innerHTML = '';
+
+            currentBlockOrder.forEach((blockId, index) => {
+                const blockDef = OPTIONS_BLOCK_IDS.find(b => b.id === blockId);
+                if (!blockDef) return;
+
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2 bg-gray-700 rounded-lg border border-gray-600';
+                item.innerHTML = `
+                        <span class="text-sm text-gray-300">${blockDef.label}</span>
+                        <div class="space-x-1">
+                            <button class="order-btn" data-index="${index}" data-direction="up" ${index === 0 ? 'disabled' : ''}>↑</button>
+                            <button class="order-btn" data-index="${index}" data-direction="down" ${index === currentBlockOrder.length - 1 ? 'disabled' : ''}>↓</button>
+                        </div>
+                    `;
+                list.appendChild(item);
+            });
+
+            // Botão Salvar (adicionado separadamente)
+            const saveButton = document.createElement('button');
+            saveButton.id = 'save-block-order-button';
+            saveButton.textContent = 'Salvar Ordem dos Blocos';
+            saveButton.className = 'w-full mt-4 py-3 px-4 bg-primary hover:bg-primary:80 rounded-lg text-white font-semibold transition duration-200';
+            saveButton.onclick = () => saveBlockOrder(true);
+            list.appendChild(saveButton);
+
+            // Adiciona listeners aos botões de mover
+            list.querySelectorAll('.order-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index, 10);
+                    const direction = btn.dataset.direction;
+                    moveBlock(index, direction);
+                });
+            });
+        }
+
+        // Move um item na lista de ordem e atualiza a UI
+        function moveBlock(index, direction) {
+            if (direction === 'up' && index > 0) {
+                // Troca [index] com [index - 1]
+                [currentBlockOrder[index], currentBlockOrder[index - 1]] = [currentBlockOrder[index - 1], currentBlockOrder[index]];
+            } else if (direction === 'down' && index < currentBlockOrder.length - 1) {
+                // Troca [index] com [index + 1]
+                [currentBlockOrder[index], currentBlockOrder[index + 1]] = [currentBlockOrder[index + 1], currentBlockOrder[index]];
+            }
+
+            // Re-renderiza a lista de gerenciamento E o layout principal
+            renderBlockOrderList();
+            renderOptionsLayout();
+        }
+
+
+        // --- FUNÇÕES DE UTILITÁRIO ---
+
+        const getCollectionPath = (currentUserId) => {
+            return `artifacts/${appId}/users/${currentUserId}/tracking_entries`;
+        };
+
+        function normalizeText(text) {
+            if (!text) return '';
+            return String(text).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        }
+
+        function slugToTitle(slug) {
+            return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        // CORREÇÃO: Função parseLink agora aceita link base e links de capítulo
+        function parseLink(link) {
+            // Regex 1: Captura link de capítulo (ex: .../manga/bleach/capitulo-104)
+            const chapterRegex = /\/manga\/([^/]+)\/(capitulo|chapter|volumen|volume|cap|ch|v|ep|episodio)[-_](\d+)/i;
+            const chapterMatch = link.match(chapterRegex);
+
+            if (chapterMatch && chapterMatch[1] && chapterMatch[3]) {
+                const slug = chapterMatch[1];
+                const chapterNumber = parseInt(chapterMatch[3], 10);
+                const readableName = slugToTitle(slug);
+                return { name: readableName, chaptersRead: chapterNumber };
+            }
+
+            // Regex 2: Captura link base (ex: .../manga/bleach/)
+            const baseRegex = /\/manga\/([^/]+)\/?$/i;
+            const baseMatch = link.match(baseRegex);
+
+            if (baseMatch && baseMatch[1]) {
+                const slug = baseMatch[1];
+                const readableName = slugToTitle(slug);
+                return { name: readableName, chaptersRead: 0 }; // 0 capítulos lidos para link base
+            }
+
+            return null;
+        }
+
+        function extractBaseUrl(link) {
+            if (!link || typeof link !== 'string') return null;
+            // Regex para link base de manga/manhwa
+            const regex = /(.*\/manga\/[^/]+)/i;
+            const match = link.match(regex);
+            if (match && match[1]) return match[1];
+            // Regex para link base de anime
+            const animeRegex = /(.*\/anime\/[^/]+)/i;
+            const animeMatch = link.match(animeRegex);
+            if (animeMatch && animeMatch[1]) return animeMatch[1];
+            return null;
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            return new Date(timestamp).toLocaleString('pt-BR', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        // --- Lógica do Modal Padrão (Alertas/Confirmações) ---
+
+        function showCustomConfirm(message) {
+            DOM_GLOBAL.modalTitle.textContent = "Confirmação";
+            DOM_GLOBAL.modalMessage.textContent = message;
+            DOM_GLOBAL.customModal.classList.remove('hidden');
+            DOM_GLOBAL.customModal.classList.add('flex');
+
+            return new Promise((resolve) => {
+                const confirmHandler = () => {
+                    DOM_GLOBAL.customModal.classList.add('hidden');
+                    DOM_GLOBAL.customModal.classList.remove('flex');
+                    DOM_GLOBAL.modalConfirm.onclick = null;
+                    DOM_GLOBAL.modalCancel.onclick = null;
+                    resolve(true);
+                };
+                const cancelHandler = () => {
+                    DOM_GLOBAL.customModal.classList.add('hidden');
+                    DOM_GLOBAL.customModal.classList.remove('flex');
+                    DOM_GLOBAL.modalConfirm.onclick = null;
+                    DOM_GLOBAL.modalCancel.onclick = null;
+                    resolve(false);
+                };
+                DOM_GLOBAL.modalConfirm.onclick = confirmHandler;
+                DOM_GLOBAL.modalCancel.onclick = cancelHandler;
+            });
+        }
+
+        // --- Lógica dos Modals de Cadastro e Detalhes ---
+
+        function openFormModal(title = 'Adicionar Nova Obra / Capítulo') {
+            DOM_TRACKER.formModalTitle.textContent = title;
+            DOM_GLOBAL.formModal.classList.remove('hidden');
+            DOM_GLOBAL.formModal.classList.add('flex');
+            setTimeout(() => {
+                DOM_GLOBAL.formModal.querySelector('div').classList.remove('opacity-0', 'scale-95');
+                DOM_GLOBAL.formModal.querySelector('div').classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        function closeFormModal() {
+            DOM_GLOBAL.formModal.querySelector('div').classList.remove('opacity-100', 'scale-100');
+            DOM_GLOBAL.formModal.querySelector('div').classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                DOM_GLOBAL.formModal.classList.add('hidden');
+                DOM_GLOBAL.formModal.classList.remove('flex');
+                resetForm();
+            }, 300);
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-content-card').classList.remove('opacity-100', 'scale-100');
+            document.getElementById('details-content-card').classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                DOM_GLOBAL.detailsModal.classList.add('hidden');
+                DOM_GLOBAL.detailsModal.classList.remove('flex');
+            }, 300);
+        }
+
+        function showDetailsModal(entry) {
+            const chaptersRead = entry.chaptersRead || 0;
+            const totalChapters = entry.totalChapters > 0 ? entry.totalChapters : 'N/A';
+            const progressPercentage = totalChapters !== 'N/A' ? Math.min(100, (chaptersRead / totalChapters) * 100).toFixed(1) : 'N/A';
+            const progressText = totalChapters !== 'N/A' ? `${progressPercentage}%` : 'Sem total definido';
+            const genresArray = entry.genres ? entry.genres.split(',').map(g => g.trim()).filter(g => g) : [];
+
+            const baseUrl = extractBaseUrl(entry.link);
+            const nameHtml = baseUrl
+                ? `<a href="${baseUrl}" target="_blank" class="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 underline transition duration-150">${entry.name}</a>`
+                : `<span class="text-[var(--color-primary)]">${entry.name}</span>`;
+
+            document.getElementById('details-name').innerHTML = nameHtml;
+
+            const actionsHtml = `
+                    <div class="flex mt-4 space-x-3">
+                        <button id="details-edit-button-action" 
+                                class="flex-grow py-2 bg-primary hover:bg-primary:80 rounded-lg text-white font-semibold transition duration-200">
+                            Editar Obra
+                        </button>
+                        <button id="details-delete-button-action" 
+                                class="flex-grow py-2 bg-danger hover:bg-red-700 rounded-lg text-white font-semibold transition duration-200">
+                            Excluir Obra
+                        </button>
+                    </div>
+                `;
+
+            document.getElementById('details-body').innerHTML = `
+                    <p><strong>Tipo:</strong> <span class="font-medium text-white">${entry.workType || 'N/A'}</span></p>
+                    <p><strong>Status:</strong> <span class="font-medium text-white">${entry.status || 'Lendo'}</span></p>
+                    ${entry.link ? `<p><strong>Link Base:</strong> <a href="${baseUrl}" target="_blank" class="text-blue-400 hover:text-blue-300 truncate max-w-full inline-block">${baseUrl || 'N/A'}</a></p>` : ''}
+                    <p><strong>Total de Capítulos:</strong> <span class="font-medium text-white">${totalChapters}</span></p>
+                    <p><strong>Capítulos Lidos:</strong> <span class="font-medium text-white">${chaptersRead}</span></p>
+                    <p><strong>Progresso:</strong> <span class="font-medium text-white">${progressText}</span></p>
+                    <p><strong>Nota:</strong> <span class="font-medium text-accent">${entry.score || 'N/A'}</span></p>
+                    <div class="pt-2 border-t border-gray-700">
+                        <p class="font-semibold mb-1">Gêneros:</p>
+                        <div class="flex flex-wrap gap-2">${genresArray.map(genre => `<span class="px-2 py-0.5 text-xs font-medium bg-primary text-white rounded-full">${genre}</span>`).join('')}</div>
+                    </div>
+                    <div class="pt-2 border-t border-gray-700">
+                        <p><strong>Última Atualização:</strong> <span class="font-medium text-white">${formatDate(entry.timestamp)}</span></p>
+                    </div>
+                    ${entry.description ? `
+                        <div class="pt-2 border-t border-gray-700">
+                            <p class="font-semibold mb-1">Observação:</p>
+                            <p class="text-sm italic text-gray-400 whitespace-pre-wrap">${entry.description}</p>
+                        </div>
+                    ` : ''}
+                    ${actionsHtml}
+                `;
+
+            // Adiciona listener de edição e exclusão
+            document.getElementById('details-edit-button-action').onclick = () => {
+                closeDetailsModal();
+                editEntry(entry);
+            };
+            document.getElementById('details-delete-button-action').onclick = () => {
+                closeDetailsModal();
+                deleteEntry(entry.id);
+            };
+
+
+            DOM_GLOBAL.detailsModal.classList.remove('hidden');
+            DOM_GLOBAL.detailsModal.classList.add('flex');
+            setTimeout(() => {
+                document.getElementById('details-content-card').classList.remove('opacity-0', 'scale-95');
+                document.getElementById('details-content-card').classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        // --- Lógica de Persistência (Firebase / Local) ---
+
+        function loadLocalData() {
+            console.log("Modo Local Ativo: Carregando dados do localStorage.");
+            try {
+                const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+                allEntries = data ? JSON.parse(data) : [];
+            } catch (e) {
+                console.error("Erro ao carregar dados locais:", e);
+                allEntries = [];
+            }
+            // Chama sortEntries para aplicar filtros e renderizar a tabela imediatamente
+            sortEntries();
+            renderReminders();
+            DOM_GLOBAL.loadingIndicator.classList.add('hidden');
+        }
+
+        function saveLocalData() {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allEntries));
+        }
+
+        function setupDataListener() {
+            if (isLocalMode) {
+                DOM_GLOBAL.loadingIndicator.classList.add('hidden');
+                return;
+            }
+            if (!db || !userId) return;
+
+            DOM_GLOBAL.loadingIndicator.classList.remove('hidden');
+            const trackingCol = collection(db, getCollectionPath(userId));
+            const q = query(trackingCol);
+
+            onSnapshot(q, (snapshot) => {
+                allEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Chama sortEntries após carregar dados remotos
+                sortEntries();
+                renderReminders();
+                DOM_GLOBAL.loadingIndicator.classList.add('hidden');
+            }, (error) => {
+                console.error("Erro ao ouvir dados do Firestore:", error);
+                DOM_GLOBAL.loadingIndicator.textContent = 'Erro ao carregar dados.';
+            });
+        }
+
+        // --- Funções de Visibilidade de Colunas ---
+
+        function loadColumnVisibility() {
+            const storedVisibility = localStorage.getItem(VISIBLE_COLS_STORAGE_KEY);
+            if (storedVisibility) {
+                visibleTableColumns = JSON.parse(storedVisibility);
+            } else {
+                visibleTableColumns = ALL_TABLE_COLUMNS.map(col => ({
+                    id: col.id,
+                    visible: col.default // Visível por padrão
+                }));
+            }
+            // Renderiza (só se a aba tracker estiver carregada)
+            if (trackerInitialized) {
+                renderColumnFilterCheckboxes();
+            }
+        }
+
+        function saveColumnVisibility() {
+            localStorage.setItem(VISIBLE_COLS_STORAGE_KEY, JSON.stringify(visibleTableColumns));
+        }
+
+        function renderColumnFilterCheckboxes() {
+            if (!DOM_TRACKER.columnFilterContainer) return;
+            DOM_TRACKER.columnFilterContainer.innerHTML = '';
+
+            ALL_TABLE_COLUMNS.forEach(col => {
+                const visibilityObject = visibleTableColumns.find(v => v.id === col.id);
+                const isVisible = visibilityObject ? visibilityObject.visible : col.default;
+
+                const label = document.createElement('label');
+                label.className = "flex items-center text-gray-200";
+                label.innerHTML = `
+                        <input type="checkbox" data-col-id="${col.id}" ${isVisible ? 'checked' : ''}
+                            class="column-visibility-checkbox h-4 w-4 text-primary bg-gray-700 border-gray-600 rounded">
+                        <span class="ml-2">${col.label}</span>
+                    `;
+                DOM_TRACKER.columnFilterContainer.appendChild(label);
+            });
+
+            DOM_TRACKER.columnFilterContainer.querySelectorAll('.column-visibility-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const colId = e.target.dataset.colId;
+                    const isChecked = e.target.checked;
+                    const colIndex = visibleTableColumns.findIndex(v => v.id === colId);
+
+                    if (colIndex !== -1) {
+                        visibleTableColumns[colIndex].visible = isChecked;
+                    } else {
+                        visibleTableColumns.push({ id: colId, visible: isChecked });
+                    }
+
+                    saveColumnVisibility();
+                    sortEntries(); // Re-renderiza a tabela
+                });
+            });
+        }
+
+        // --- Lógica de Busca, Ordenação e Filtro (Persistência do Filtro) ---
+
+        function loadActiveGenreFilters() {
+            try {
+                const storedFilters = localStorage.getItem(ACTIVE_GENRE_FILTER_KEY);
+                activeGenreFilters = storedFilters ? JSON.parse(storedFilters) : [];
+            } catch (e) {
+                console.error("Erro ao carregar filtros de gênero.", e);
+                activeGenreFilters = [];
+            }
+        }
+
+        function saveActiveGenreFilters() {
+            localStorage.setItem(ACTIVE_GENRE_FILTER_KEY, JSON.stringify(activeGenreFilters));
+        }
+
+        function globalSearchAndFilter() {
+            let filteredEntries = allEntries;
+            const normalizedSearchTerm = normalizeText(globalSearchTerm);
+
+            if (normalizedSearchTerm) {
+                filteredEntries = filteredEntries.filter(entry => {
+                    const searchString = [
+                        normalizeText(entry.name),
+                        normalizeText(entry.workType),
+                        normalizeText(entry.genres),
+                        normalizeText(entry.description),
+                        String(entry.score || '')
+                    ].join(' ');
+                    return searchString.includes(normalizedSearchTerm);
+                });
+            }
+
+            if (activeGenreFilters.length > 0) {
+                const requiredGenres = new Set(activeGenreFilters);
+                filteredEntries = filteredEntries.filter(entry => {
+                    const entryGenres = (entry.genres || '').split(',').map(g => g.trim()).filter(g => g);
+                    // Filtro OR: Retorna true se a obra tiver PELO MENOS um dos gêneros selecionados
+                    return entryGenres.some(g => requiredGenres.has(g));
+                });
+            }
+
+            return filteredEntries;
+        }
+
+        function sortEntries() {
+            // A primeira vez que é chamado no modo local, a UI pode não estar pronta, mas é preciso manter a ordem de chamada.
+            // Correção: Agora sortEntries sempre chama renderEntries, que renderiza os dados filtrados/ordenados.
+
+            const { field, direction } = currentSort;
+            let sortedEntries = globalSearchAndFilter();
+
+            sortedEntries.sort((a, b) => {
+                let valA, valB;
+
+                if (field === 'progressValue') {
+                    const totalA = a.totalChapters > 0 ? a.totalChapters : 0;
+                    const totalB = b.totalChapters > 0 ? b.totalChapters : 0;
+                    valA = totalA > 0 ? (a.chaptersRead || 0) / totalA : (a.chaptersRead || 0) > 0 ? 0.0001 : 0;
+                    valB = totalB > 0 ? (b.chaptersRead || 0) / totalB : (b.chaptersRead || 0) > 0 ? 0.0001 : 0;
+                } else if (field === 'score') {
+                    valA = a.score || -1;
+                    valB = b.score || -1;
+                } else if (field === 'name') {
+                    valA = normalizeText(a.name);
+                    valB = normalizeText(b.name);
+                } else { // timestamp
+                    valA = a[field] || 0;
+                    valB = b[field] || 0;
+                }
+
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+
+                // Se os valores forem iguais, usa o nome como desempate secundário
+                const nameA = normalizeText(a.name);
+                const nameB = normalizeText(b.name);
+                if (nameA < nameB) return -1;
+                if (nameA > nameB) return 1;
+                return 0;
+            });
+
+            // Só renderiza se o tracker tiver sido inicializado (os elementos DOM existirem)
+            if (trackerInitialized) {
+                renderEntries(sortedEntries);
+            } else {
+                // Se não estiver inicializado, apenas processa os dados (útil durante o carregamento inicial)
+                renderReminders();
+            }
+        }
+
+        function setupSortingListeners() {
+            // CORREÇÃO: Esta função agora é chamada por initializeTrackerListeners,
+            // então todos os elementos .sortable devem existir.
+            document.querySelectorAll('.sortable').forEach(el => {
+                el.onclick = null; // Limpa listeners antigos
+                el.addEventListener('click', () => {
+                    const field = el.dataset.col;
+                    const newDirection = (currentSort.field === field && currentSort.direction === 'asc') ? 'desc' : 'asc';
+
+                    currentSort = { field, direction: newDirection };
+
+                    document.querySelectorAll('.sortable .sort-icon').forEach(icon => icon.textContent = '');
+
+                    const icon = el.querySelector('.sort-icon');
+                    if (icon) {
+                        icon.textContent = newDirection === 'asc' ? ' ▲' : ' ▼';
+                    }
+
+                    sortEntries();
+                });
+            });
+
+            // Aplica a ordenação inicial
+            document.querySelectorAll('.sortable .sort-icon').forEach(icon => icon.textContent = '');
+            const currentSortHeader = document.querySelector(`.sortable[data-col="${currentSort.field}"] .sort-icon`);
+            if (currentSortHeader) {
+                currentSortHeader.textContent = currentSort.direction === 'asc' ? ' ▲' : ' ▼';
+            }
+        }
+        
+
+        // --- Lógica de Lembretes (CORRIGIDO NOME E INTERATIVIDADE) ---
+
+      function renderReminders() {
+    loadSettings(); 
+    const now = Date.now();
+    let reminderCount = 0;
+    let remindersHtml = '';
+
+    const reminderEntries = allEntries
+        .filter(entry => entry.status === 'Lendo')
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+    reminderEntries.forEach(entry => {
+        const daysSinceUpdate = Math.floor((now - (entry.timestamp || 0)) / (24 * 60 * 60 * 1000));
+        const isDelayed = reminderDaysThreshold === -1 || daysSinceUpdate >= reminderDaysThreshold;
+
+        if (!isDelayed) return; 
+
+        reminderCount++;
+        const daysText = reminderDaysThreshold === -1 ? 'Sempre' : `${daysSinceUpdate} dias`;
+        const linkBaseUrl = extractBaseUrl(entry.link);
+        
+        const nameHtml = linkBaseUrl
+            ? `<a href="${linkBaseUrl}" target="_blank" class="text-white hover:text-primary underline transition duration-150 font-bold truncate block max-w-[200px]">${entry.name}</a>`
+            : `<span class="text-white font-bold truncate block max-w-[200px]">${entry.name}</span>`;
+
+        remindersHtml += `
+            <div class="p-4 rounded-xl bg-secondary border border-primary/30 flex flex-wrap items-center justify-between mb-3 gap-4">
+                <!-- Info da Obra -->
+                <div class="flex-1 min-w-[150px]">
+                    ${nameHtml}
+                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Atraso: ${daysText}</p>
+                </div>
+                
+                <!-- O WIDGET DE CAPÍTULO (IGUAL À IMAGEM) -->
+                <div class="flex items-center bg-[#111418] rounded-md border border-gray-700 overflow-hidden h-10">
+                    <button onclick="window.handleQuickChapterUpdate('${entry.id}', -1)" 
+                        class="w-10 h-full flex items-center justify-center hover:bg-gray-800 text-white text-lg font-bold transition border-r border-gray-700">-</button>
+                    
+                    <div class="px-4 h-full flex flex-col items-center justify-center bg-[#1a1f26] min-w-[60px]">
+                        <span class="text-[8px] text-gray-500 font-extrabold uppercase leading-none mb-1">CAP</span>
+                        <span class="text-sm text-white font-mono font-bold leading-none">${entry.chaptersRead}</span>
+                    </div>
+
+                    <button onclick="window.handlePlusWithConfirm('${entry.id}')" 
+                        class="w-10 h-full flex items-center justify-center hover:bg-gray-800 text-white text-lg font-bold transition border-l border-gray-700">+</button>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="window.handleVerify('${entry.id}')" 
+                        class="px-4 py-2 bg-danger hover:bg-red-600 text-white text-xs font-bold rounded-lg transition">
+                        Confirmar
+                    </button>
+                    <button onclick="window.handleShowDetails('${entry.id}')" 
+                        class="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition" title="Detalhes">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    const container = document.getElementById('reminders-list-container');
+    const noData = document.getElementById('reminders-no-data');
+    if (container) container.innerHTML = remindersHtml;
+    if (noData) noData.classList.toggle('hidden', remindersHtml.length > 0);
+
+    if (DOM_GLOBAL.remindersTotalCountSpan) DOM_GLOBAL.remindersTotalCountSpan.textContent = reminderCount;
+    if (DOM_GLOBAL.reminderCountTab) {
+        DOM_GLOBAL.reminderCountTab.textContent = reminderCount;
+        DOM_GLOBAL.reminderCountTab.classList.toggle('hidden', reminderCount === 0);
+    }
+}
+
+        // NOVO: Função Global para mostrar detalhes
+        window.handleShowDetails = (entryId) => {
+            const entry = allEntries.find(e => e.id === entryId);
+            if (entry) {
+                showDetailsModal(entry);
+            } else {
+                showCustomConfirm("Detalhes da obra não encontrados.").then(() => { });
+            }
+        }
+
+        // NOVO: Função Global para verificar (resetar timer)
+        window.handleVerify = async (entryId) => {
+            const entry = allEntries.find(e => e.id === entryId);
+            if (!entry) return;
+
+            const confirmed = await showCustomConfirm(
+                `O mangá "${entry.name}" parou no capítulo ${entry.chaptersRead}?\n\nConfirmar irá atualizar a data de verificação para "Agora" e remover o lembrete até o próximo ciclo.`
+            );
+
+            if (!confirmed) return;
+
+            const now = Date.now();
+
+            if (isLocalMode) {
+                const index = allEntries.findIndex(e => e.id === entryId);
+                if (index !== -1) {
+                    allEntries[index].timestamp = now;
+                    saveLocalData();
+                    renderReminders();
+                    // Opcional: sortEntries() se quiser atualizar a tabela principal também
+                    showCustomConfirm("Verificado! Temporizador resetado.").then(() => { });
+                }
+            } else if (userId) {
+                try {
+                    const entryRef = doc(db, getCollectionPath(userId), entryId);
+                    await setDoc(entryRef, { timestamp: now }, { merge: true });
+                    // Snapshot listener updates UI automatically
+                    showCustomConfirm("Verificado! Temporizador resetado.").then(() => { });
+                } catch (error) {
+                    console.error(error);
+                    showCustomConfirm("Erro ao verificar.").then(() => { });
+                }
+            }
+        }
+
+
+        // --- Lógica de Renderização da Tabela ---
+
+        function renderTableHeaders() {
+            const tableHead = document.getElementById('table-header-row');
+            if (!tableHead) return;
+
+            while (tableHead.firstChild) {
+                tableHead.removeChild(tableHead.firstChild);
+            }
+
+            if (DOM_TRACKER.bulkHeader) {
+                DOM_TRACKER.bulkHeader.classList.toggle('hidden', !bulkDeleteMode);
+                DOM_TRACKER.bulkHeader.classList.toggle('w-checkbox-col', bulkDeleteMode);
+                DOM_TRACKER.bulkHeader.classList.toggle('rounded-tl-lg', bulkDeleteMode);
+                tableHead.appendChild(DOM_TRACKER.bulkHeader);
+            }
+
+            const visibleHeaders = ALL_TABLE_COLUMNS.filter(col => visibleTableColumns.find(v => v.id === col.id)?.visible);
+
+            visibleHeaders.forEach((col, index) => {
+                const isLastVisible = index === visibleHeaders.length - 1;
+                const sortableId = col.id === 'updated' ? 'sort-updated' : `sort-${col.sortId || col.id}`;
+
+                let th = document.getElementById(sortableId);
+                if (!th) {
+                    th = document.createElement('th');
+                    th.id = sortableId;
+                }
+
+                th.dataset.col = col.id === 'progress' ? 'progressValue' : (col.sortId || col.id);
+                th.className = `sortable px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap`;
+                th.classList.toggle('hidden', bulkDeleteMode && col.id === 'name');
+                th.classList.toggle('rounded-tr-lg', !bulkDeleteMode && isLastVisible);
+
+                th.innerHTML = `${col.label} <span class="sort-icon"></span>`;
+                tableHead.appendChild(th);
+            });
+
+            if (tableHead.lastChild && tableHead.lastChild.nodeName === 'TH') {
+                tableHead.lastChild.classList.add('rounded-tr-lg');
+            }
+
+            setupSortingListeners();
+        }
+
+        function renderEntries(entries) {
+            if (!DOM_TRACKER.entriesList) return; // Segurança
+
+            DOM_TRACKER.entriesList.innerHTML = '';
+
+            const visibleCols = ALL_TABLE_COLUMNS.filter(col => visibleTableColumns.find(v => v.id === col.id)?.visible);
+            const totalVisibleCols = visibleCols.length;
+            const colCount = bulkDeleteMode ? totalVisibleCols + 1 : totalVisibleCols;
+
+            renderTableHeaders();
+
+            if (entries.length === 0) {
+                DOM_TRACKER.entriesList.innerHTML = `
+                        <tr>
+                            <td colspan="${colCount}" class="p-4 text-center text-gray-400">
+                                ${activeGenreFilters.length > 0 || globalSearchTerm ?
+                        'Nenhuma obra encontrada com os filtros/busca aplicados.' :
+                        'Nenhuma obra cadastrada ainda. Use o botão \'Nova Obra\' para começar!'}
+                            </td>
+                        </tr>
+                    `;
+                DOM_TRACKER.startBulkDeleteButton.disabled = true;
+                return;
+            }
+
+            DOM_TRACKER.startBulkDeleteButton.disabled = false;
+
+            const visibleColsMap = new Map(visibleTableColumns.map(col => [col.id, col.visible]));
+
+            entries.forEach(entry => {
+                const chaptersRead = entry.chaptersRead || 0;
+                const totalChapters = entry.totalChapters > 0 ? entry.totalChapters : null;
+                const progressPercentage = totalChapters ? Math.min(100, (chaptersRead / totalChapters) * 100).toFixed(1) : 0;
+                const progressText = totalChapters ? `${chaptersRead} / ${totalChapters} (${progressPercentage}%)` : `${chaptersRead} lidos`;
+
+                let progressColor = 'bg-primary';
+                if (progressPercentage >= 100 || entry.status === 'Completo') {
+                    progressColor = 'bg-success';
+                } else if (entry.status === 'Temporada Finalizada') {
+                    progressColor = 'bg-purple-600'; // Cor diferenciada para Temporada Finalizada
+                } else if (entry.status === 'Pausado' || entry.status === 'Dropado') {
+                    progressColor = 'bg-gray-500';
+                }
+
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-700 transition duration-150';
+
+                // Aqui não é mais necessário JSON.stringify, apenas o ID
+                let rowHtml = '';
+
+                if (bulkDeleteMode) {
+                    rowHtml += `<td class="px-1 py-3 text-center w-checkbox-col">
+                            <input type="checkbox" data-id="${entry.id}" class="bulk-delete-checkbox h-4 w-4 text-danger bg-gray-700 border-gray-600 rounded">
+                        </td>`;
+                }
+
+                ALL_TABLE_COLUMNS.filter(col => visibleColsMap.get(col.id)).forEach(col => {
+                    let content = '';
+                    let className = 'px-3 py-3 whitespace-nowrap text-sm text-gray-400';
+                    let isHidden = false;
+
+                    if (col.id === 'name') {
+                        content = entry.name;
+                        className = 'px-3 py-3 whitespace-nowrap font-medium text-white max-w-xs truncate cursor-pointer hover:text-[var(--color-primary)]/80';
+                        isHidden = bulkDeleteMode;
+                        // CORREÇÃO: Usar o evento de clique global para detalhes
+                        rowHtml += `<td class="${className} ${isHidden ? 'hidden' : ''}" data-entry-id="${entry.id}">${content}</td>`;
+                        return;
+                    } else if (col.id === 'progress') {
+                        content = `
+                                <div class="w-32 bg-gray-600 rounded-full h-2.5">
+                                    <div class="h-2.5 rounded-full ${progressColor}" style="width: ${progressPercentage}%"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">${progressText}</span>`;
+                    } else if (col.id === 'score') {
+                        content = entry.score || 'N/A';
+                        className += ' text-accent hidden sm:table-cell';
+                    } else if (col.id === 'updated') {
+                        content = formatDate(entry.timestamp);
+                        className += ' text-xs';
+                    } else if (col.id === 'status') {
+                        content = entry.status || 'Lendo';
+                    } else if (col.id === 'type') {
+                        content = entry.workType || 'N/A';
+                    }
+
+                    rowHtml += `<td class="${className} ${isHidden ? 'hidden' : ''}">${content}</td>`;
+                });
+
+                row.innerHTML = rowHtml;
+                DOM_TRACKER.entriesList.appendChild(row);
+            });
+
+            DOM_TRACKER.entriesList.querySelectorAll('td[data-entry-id]').forEach(cell => {
+                const row = cell.parentElement;
+                const entryId = cell.dataset.entryId;
+
+                cell.onclick = (e) => {
+                    if (bulkDeleteMode) {
+                        const checkbox = row.querySelector('.bulk-delete-checkbox');
+                        if (checkbox) checkbox.checked = !checkbox.checked;
+                        updateBulkDeleteCount();
+                        return;
+                    }
+                    handleShowDetails(entryId); // Usa a função corrigida
+                }
+            });
+
+            if (bulkDeleteMode) {
+                DOM_TRACKER.entriesList.querySelectorAll('.bulk-delete-checkbox').forEach(cb => {
+                    cb.addEventListener('change', updateBulkDeleteCount);
+                });
+                updateBulkDeleteCount();
+            }
+
+            renderReminders();
+        }
+
+        // --- Lógica de FILTRO de GÊNERO (UI) ---
+
+        function renderGenreCheckboxes(containerId, checkedGenresArray = []) {
+            const container = document.getElementById(containerId); // Usado pelo formulário
+            if (!container) return;
+
+            const checkedSet = new Set(checkedGenresArray);
+            container.innerHTML = '';
+
+            STANDARD_GENRES.forEach(genre => {
+                const isChecked = checkedSet.has(genre);
+                const label = document.createElement('label');
+                label.className = "flex items-center text-sm text-gray-300 select-none cursor-pointer";
+                label.innerHTML = `
+                        <input type="checkbox" name="genre" value="${genre}" ${isChecked ? 'checked' : ''} 
+                            class="h-4 w-4 text-primary bg-gray-600 border-gray-500 rounded focus:ring-primary">
+                        <span class="ml-2">${genre}</span>
+                    `;
+                container.appendChild(label);
+            });
+        }
+
+        function renderFilterCheckboxes() {
+            const container = DOM_TRACKER.genreFilterContainer;
+            if (!container) return; // Segurança
+            container.innerHTML = '';
+
+            // O activeGenreFilters já foi carregado em loadActiveGenreFilters()
+            const checkedSet = new Set(activeGenreFilters);
+
+            STANDARD_GENRES.forEach(genre => {
+                const isChecked = checkedSet.has(genre);
+                const label = document.createElement('label');
+                label.className = "flex items-center text-sm text-gray-300 select-none cursor-pointer group justify-between";
+                label.innerHTML = `
+                        <div class="flex items-center">
+                            <input type="checkbox" data-genre="${genre}" ${isChecked ? 'checked' : ''}
+                                class="filter-checkbox h-4 w-4 text-danger bg-gray-600 border-gray-500 rounded focus:ring-danger">
+                            <span class="ml-2">${genre}</span>
+                        </div>
+                        <button type="button" data-genre-remove="${genre}" 
+                                class="delete-genre-btn text-gray-500 hover:text-danger opacity-0 group-hover:opacity-100 transition duration-150 p-1 rounded-full ml-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    `;
+                container.appendChild(label);
+            });
+
+            container.querySelectorAll('.delete-genre-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const genreToRemove = button.dataset.genreRemove;
+                    removeGenre(genreToRemove);
+                });
+            });
+        }
+
+        function applyFilters() {
+            const selectedGenres = Array.from(DOM_TRACKER.genreFilterContainer.querySelectorAll('.filter-checkbox:checked'))
+                .map(cb => cb.dataset.genre);
+
+            activeGenreFilters = selectedGenres;
+            saveActiveGenreFilters(); // NOVO: Salva o estado do filtro
+            sortEntries();
+        }
+
+        function clearFilters() {
+            activeGenreFilters = [];
+            saveActiveGenreFilters(); // NOVO: Limpa e salva o estado
+            renderFilterCheckboxes();
+            sortEntries();
+        }
+
+
+        // --- Lógica de Exclusão Múltipla ---
+
+        function enterBulkDeleteMode() {
+            bulkDeleteMode = true;
+            DOM_TRACKER.startBulkDeleteButton.textContent = 'Excluir Selecionados (0)';
+            DOM_TRACKER.startBulkDeleteButton.classList.add('bg-gray-600', 'hover:bg-gray-700');
+            DOM_TRACKER.startBulkDeleteButton.classList.remove('bg-danger', 'hover:bg-red-700');
+            DOM_TRACKER.startBulkDeleteButton.disabled = true;
+
+            const controlsDiv = document.getElementById('tracker-controls');
+            let cancelButton = document.getElementById('cancel-bulk-delete-button');
+            if (!cancelButton) {
+                cancelButton = document.createElement('button');
+                cancelButton.id = 'cancel-bulk-delete-button';
+                cancelButton.textContent = 'Cancelar Exclusão';
+                cancelButton.className = 'py-3 px-6 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition duration-200';
+                controlsDiv.appendChild(cancelButton);
+                cancelButton.addEventListener('click', exitBulkDeleteMode);
+            }
+            sortEntries();
+        }
+
+        function exitBulkDeleteMode() {
+            bulkDeleteMode = false;
+            DOM_TRACKER.startBulkDeleteButton.textContent = 'Excluir Selecionados';
+            DOM_TRACKER.startBulkDeleteButton.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+            DOM_TRACKER.startBulkDeleteButton.classList.add('bg-danger', 'hover:bg-red-700');
+            DOM_TRACKER.startBulkDeleteButton.disabled = false;
+
+            const cancelButton = document.getElementById('cancel-bulk-delete-button');
+            if (cancelButton) cancelButton.remove();
+
+            sortEntries();
+        }
+
+        function updateBulkDeleteCount() {
+            const checkedCount = DOM_TRACKER.entriesList.querySelectorAll('.bulk-delete-checkbox:checked').length;
+            DOM_TRACKER.startBulkDeleteButton.textContent = `Excluir Selecionados (${checkedCount})`;
+
+            if (checkedCount > 0) {
+                DOM_TRACKER.startBulkDeleteButton.disabled = false;
+                DOM_TRACKER.startBulkDeleteButton.classList.add('bg-danger', 'hover:bg-red-700');
+                DOM_TRACKER.startBulkDeleteButton.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+            } else {
+                DOM_TRACKER.startBulkDeleteButton.disabled = true;
+                DOM_TRACKER.startBulkDeleteButton.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                DOM_TRACKER.startBulkDeleteButton.classList.remove('bg-danger', 'hover:bg-red-700');
+            }
+        }
+
+        async function deleteSelectedEntries() {
+            const selectedCheckboxes = DOM_TRACKER.entriesList.querySelectorAll('.bulk-delete-checkbox:checked');
+            const idsToDelete = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
+            if (idsToDelete.length === 0) return;
+
+            const confirmed = await showCustomConfirm(`Você tem certeza que deseja excluir ${idsToDelete.length} obras permanentemente?`);
+            if (!confirmed) return;
+
+            if (isLocalMode) {
+                allEntries = allEntries.filter(entry => !idsToDelete.includes(entry.id));
+                saveLocalData();
+                sortEntries();
+                showCustomConfirm(`Exclusão de ${idsToDelete.length} obras concluída (Local).`).then(() => { });
+            } else if (userId) {
+                DOM_TRACKER.startBulkDeleteButton.disabled = true;
+                DOM_TRACKER.startBulkDeleteButton.textContent = 'Excluindo...';
+                try {
+                    for (const id of idsToDelete) {
+                        const entryRef = doc(db, getCollectionPath(userId), id);
+                        await deleteDoc(entryRef);
+                    }
+                    showCustomConfirm(`Exclusão de ${idsToDelete.length} obras concluída (Remota).`).then(() => { });
+                } catch (error) {
+                    console.error("Erro ao excluir documentos em lote no Firebase:", error);
+                    showCustomConfirm(`Erro ao excluir em lote: ${error.message}`).then(() => { });
+                } finally {
+                    DOM_TRACKER.startBulkDeleteButton.disabled = false;
+                }
+            }
+            exitBulkDeleteMode();
+        }
+
+
+        // --- Lógica de Formulário e CRUD (Sugestão de Dados e Atualização de Repetidos) ---
+
+        /**
+         * NOVO: Verifica se o nome da obra já existe e pré-preenche os campos se estiver em modo de 'novo cadastro'.
+         */
+        function checkExistingEntry() {
+            const currentName = DOM_TRACKER.nameInput.value.trim();
+            const existingEntry = allEntries.find(entry => normalizeText(entry.name) === normalizeText(currentName));
+
+            // Só preenche automaticamente se:
+            // 1. Não estiver em modo de edição (o campo hidden 'entry-id' estiver vazio)
+            // 2. O nome não estiver vazio
+
+            if (existingEntry && !DOM_TRACKER.entryIdInput.value) {
+                DOM_TRACKER.existingEntryMessage.classList.remove('hidden');
+
+                // Preenche campos, exceto chaptersRead (o usuário está adicionando um novo capítulo lido)
+                DOM_TRACKER.entryIdInput.value = existingEntry.id; // Marca para atualização
+                DOM_TRACKER.formModalTitle.textContent = `Atualizar Obra: ${existingEntry.name}`;
+                DOM_TRACKER.submitText.textContent = 'Atualizar Obra/Capítulo';
+
+                DOM_TRACKER.linkInput.value = existingEntry.link || '';
+                DOM_TRACKER.totalChaptersInput.value = existingEntry.totalChapters || '';
+                DOM_TRACKER.chaptersReadInput.value = existingEntry.chaptersRead || 0; // Mantém o valor existente
+                DOM_TRACKER.scoreInput.value = existingEntry.score || '';
+                DOM_TRACKER.workTypeInput.value = existingEntry.workType || 'Manga';
+                DOM_TRACKER.statusInput.value = existingEntry.status || 'Lendo';
+                DOM_TRACKER.descriptionInput.value = existingEntry.description || '';
+
+                const genresArray = (existingEntry.genres || '').split(',').map(g => g.trim()).filter(g => g);
+                renderGenreCheckboxes(DOM_TRACKER.genresCheckboxContainer.id, genresArray);
+
+            } else if (!DOM_TRACKER.entryIdInput.value) {
+                // Se o nome não existe E não está em modo de edição, reseta a mensagem
+                DOM_TRACKER.existingEntryMessage.classList.add('hidden');
+                DOM_TRACKER.formModalTitle.textContent = 'Adicionar Nova Obra / Capítulo';
+                DOM_TRACKER.submitText.textContent = 'Cadastrar Obra';
+            }
+        }
+
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            if (!userId) return;
+
+            const name = DOM_TRACKER.nameInput.value.trim();
+            if (!name) {
+                showCustomConfirm("O campo 'Nome da Obra' é obrigatório.").then(() => { });
+                return;
+            }
+
+            const idFromForm = DOM_TRACKER.entryIdInput.value;
+            const linkRaw = DOM_TRACKER.linkInput.value.trim();
+            const totalChaptersRaw = DOM_TRACKER.totalChaptersInput.value.trim();
+            const chaptersReadRaw = DOM_TRACKER.chaptersReadInput.value.trim();
+            const scoreRaw = DOM_TRACKER.scoreInput.value.trim();
+            const statusRaw = DOM_TRACKER.statusInput.value;
+            const checkedGenres = Array.from(DOM_TRACKER.genresCheckboxContainer.querySelectorAll('input[name="genre"]:checked'))
+                .map(cb => cb.value);
+            const genresRaw = checkedGenres.join(', ');
+            let workType = DOM_TRACKER.workTypeInput.value;
+            const descriptionRaw = DOM_TRACKER.descriptionInput.value.trim();
+            const now = Date.now();
+
+            let targetId = idFromForm;
+            let existingEntry = null;
+
+            // Encontra a entrada existente pelo ID ou pelo Nome normalizado
+            if (targetId) {
+                existingEntry = allEntries.find(entry => entry.id === targetId);
+            } else {
+                existingEntry = allEntries.find(entry => normalizeText(entry.name) === normalizeText(name));
+                if (existingEntry) targetId = existingEntry.id;
+            }
+
+            const isUpdate = !!existingEntry;
+
+            // Cria o objeto de dados. Se for atualização, não sobrescreve o createdAt
+            const data = {
+                name,
+                workType,
+                status: statusRaw,
+                chaptersRead: parseInt(chaptersReadRaw) || 0,
+                genres: genresRaw,
+                description: descriptionRaw, // Salva a descrição/observação
+            };
+
+            if (linkRaw !== '') data.link = linkRaw;
+            if (totalChaptersRaw !== '') data.totalChapters = parseInt(totalChaptersRaw) || null;
+            if (scoreRaw !== '') data.score = parseFloat(scoreRaw) || null;
+
+            /* teste de atualização de meses
+            // Se for atualização:
+            // 1. Mantém o createdAt original.
+            // 2. Só atualiza o timestamp se chaptersRead for maior OU se algum dado importante mudar
+            if (isUpdate && existingEntry) {
+                data.createdAt = existingEntry.createdAt || now;
+                // Lógica para atualizar o timestamp APENAS se houver avanço de capítulo OU alteração significativa
+                const hasChapterAdvance = data.chaptersRead > (existingEntry.chaptersRead || 0);
+                const hasStatusChange = data.status !== existingEntry.status;
+                const hasTypeChange = data.workType !== existingEntry.workType;
+
+                if (hasChapterAdvance || hasStatusChange || hasTypeChange) {
+                    data.timestamp = now; // Atualiza a data de modificação
+                } else {
+                    data.timestamp = existingEntry.timestamp; // Mantém a data original
+                }
+            } else {
+                // Se for novo cadastro, define ambos
+                data.createdAt = now;
+                data.timestamp = now;
+            } */
+
+            //arquivo abaixo substituiu o de cima
+
+            if (isUpdate && existingEntry) {
+                data.createdAt = existingEntry.createdAt || now;
+                // Recupera o histórico de leitura existente para não perdê-lo
+                data.readingHistory = existingEntry.readingHistory || [];
+
+                const hasChapterAdvance = data.chaptersRead > (existingEntry.chaptersRead || 0);
+                const hasStatusChange = data.status !== existingEntry.status;
+                const hasTypeChange = data.workType !== existingEntry.workType;
+
+                if (hasChapterAdvance || hasStatusChange || hasTypeChange) {
+                    // Se houve avanço de capítulos, registra apenas a diferença no histórico
+                    if (hasChapterAdvance) {
+                        const diff = data.chaptersRead - (existingEntry.chaptersRead || 0);
+                        data.readingHistory.push({ date: now, amount: diff });
+                    }
+                    data.timestamp = now;
+                } else {
+                    data.timestamp = existingEntry.timestamp;
+                }
+            } else {
+                data.createdAt = now;
+                data.timestamp = now;
+                // Inicia o histórico com a quantidade total no momento do cadastro
+                data.readingHistory = [{ date: now, amount: data.chaptersRead }];
+            }
+
+
+            DOM_TRACKER.submitButton.disabled = true;
+            DOM_TRACKER.submitText.textContent = isUpdate ? 'Salvando...' : 'Cadastrando...';
+
+            if (isLocalMode) {
+                if (!isUpdate) {
+                    data.id = crypto.randomUUID();
+                    allEntries.push(data);
+                } else {
+                    const index = allEntries.findIndex(e => e.id === targetId);
+                    if (index !== -1) {
+                        allEntries[index] = { ...allEntries[index], ...data, id: targetId };
+                    }
+                }
+                saveLocalData();
+                sortEntries();
+                closeFormModal();
+            } else {
+                const entryRef = targetId ? doc(db, getCollectionPath(userId), targetId) : doc(collection(db, getCollectionPath(userId)));
+                try {
+                    await setDoc(entryRef, data, { merge: true });
+                    closeFormModal();
+                } catch (error) {
+                    console.error("Erro ao salvar dados no Firebase:", error);
+                    showCustomConfirm(`Erro ao salvar no Firebase: ${error.message}`).then(() => { });
+                }
+            }
+
+            DOM_TRACKER.submitButton.disabled = false;
+        }
+
+        function editEntry(entry) {
+            DOM_TRACKER.entryIdInput.value = entry.id;
+            DOM_TRACKER.nameInput.value = entry.name;
+            DOM_TRACKER.linkInput.value = entry.link || '';
+            DOM_TRACKER.totalChaptersInput.value = entry.totalChapters || '';
+            DOM_TRACKER.chaptersReadInput.value = entry.chaptersRead || 0;
+            DOM_TRACKER.scoreInput.value = entry.score || '';
+            DOM_TRACKER.workTypeInput.value = entry.workType || 'Manga';
+            DOM_TRACKER.statusInput.value = entry.status || 'Lendo';
+            DOM_TRACKER.descriptionInput.value = entry.description || '';
+
+            const genresArray = (entry.genres || '').split(',').map(g => g.trim()).filter(g => g);
+            renderGenreCheckboxes(DOM_TRACKER.genresCheckboxContainer.id, genresArray);
+
+            DOM_TRACKER.submitText.textContent = 'Atualizar Obra';
+            DOM_TRACKER.cancelEditButton.style.display = 'block';
+            DOM_TRACKER.existingEntryMessage.classList.add('hidden'); // Oculta a mensagem de repetição na edição
+
+            openFormModal(`Editar Obra: ${entry.name}`);
+        }
+
+        function resetForm() {
+            DOM_TRACKER.entryForm.reset();
+            DOM_TRACKER.entryIdInput.value = '';
+            DOM_TRACKER.submitText.textContent = 'Cadastrar Obra';
+            DOM_TRACKER.cancelEditButton.style.display = 'none';
+            DOM_TRACKER.formModalTitle.textContent = 'Adicionar Nova Obra / Capítulo';
+            DOM_TRACKER.workTypeInput.value = 'Manga';
+            DOM_TRACKER.statusInput.value = 'Lendo';
+            DOM_TRACKER.descriptionInput.value = '';
+            DOM_TRACKER.linkInput.value = '';
+            DOM_TRACKER.existingEntryMessage.classList.add('hidden'); // Garante que esteja oculta
+            renderGenreCheckboxes(DOM_TRACKER.genresCheckboxContainer.id);
+        }
+
+        async function deleteEntry(id) {
+            const confirmed = await showCustomConfirm("Você tem certeza que deseja excluir esta obra permanentemente?");
+            if (!confirmed) return;
+
+            if (isLocalMode) {
+                allEntries = allEntries.filter(entry => entry.id !== id);
+                saveLocalData();
+                sortEntries();
+            } else if (userId) {
+                try {
+                    const entryRef = doc(db, getCollectionPath(userId), id);
+                    await deleteDoc(entryRef);
+                } catch (error) {
+                    console.error("Erro ao excluir documento no Firebase:", error);
+                    showCustomConfirm(`Erro ao excluir: ${error.message}`).then(() => { });
+                }
+            }
+        }
+
+        // --- Lógica de Relatório Dinâmico ---
+
+        function getReportFieldValue(entry, field) {
+            const chaptersRead = entry.chaptersRead || 0;
+            const totalChapters = entry.totalChapters > 0 ? entry.totalChapters : null;
+
+            switch (field) {
+                case 'name': return entry.name;
+                case 'chaptersRead': return chaptersRead;
+                case 'totalChapters': return totalChapters || 'N/A';
+                case 'score': return entry.score || 'N/A';
+                case 'genres': return entry.genres || 'N/A';
+                case 'workType': return entry.workType || 'N/A';
+                case 'updatedAt': return formatDate(entry.timestamp);
+                default: return '';
+            }
+        }
+
+        // Anexa listeners (só é chamado se a aba for aberta)
+        document.getElementById('report-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const selectedCheckboxes = Array.from(document.getElementById('report-form').querySelectorAll('input[name="field"]:checked'));
+            const selectedFields = selectedCheckboxes.map(cb => cb.value);
+            if (selectedFields.length === 0) {
+                showCustomConfirm("Selecione pelo menos um campo para gerar o relatório.").then(() => { });
+                return;
+            }
+
+            let reportText = `--- Relatório de Obras (${formatDate(Date.now())}) ---\n\n`;
+            const headers = selectedFields.map(field => {
+                const label = document.querySelector(`input[name="field"][value="${field}"]`).nextElementSibling.textContent;
+                return label;
+            });
+
+            const dataMatrix = allEntries.map(entry => selectedFields.map(field => String(getReportFieldValue(entry, field))));
+            const columnWidths = headers.map((h, i) => {
+                const maxDataLen = Math.max(...dataMatrix.map(row => row[i].length));
+                return Math.max(h.length, maxDataLen) + 2;
+            });
+
+            reportText += headers.map((h, i) => h.padEnd(columnWidths[i])).join('') + '\n';
+            reportText += columnWidths.map(w => '-'.repeat(w - 1)).join(' ') + '\n';
+
+            allEntries.forEach(entry => {
+                const line = selectedFields.map((field, i) => {
+                    return String(getReportFieldValue(entry, field)).padEnd(columnWidths[i]);
+                }).join('');
+                reportText += line + '\n';
+            });
+
+            document.getElementById('report-output').textContent = reportText;
+            document.getElementById('report-output-area').classList.remove('hidden');
+        });
+
+        function downloadReport(filename, text) {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        document.getElementById('download-report-button').addEventListener('click', () => {
+            const reportText = document.getElementById('report-output').textContent;
+            if (reportText) {
+                const date = new Date().toISOString().slice(0, 10);
+                downloadReport(`relatorio_obras_${date}.txt`, reportText);
+            }
+        });
+
+        document.getElementById('copy-report-text-button').addEventListener('click', () => {
+            const textToCopy = document.getElementById('report-output').textContent;
+            if (!textToCopy) return;
+
+            try {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    document.getElementById('copy-report-text-button').textContent = 'Copiado!';
+                }, () => {
+                    // Fallback para execCommand
+                    throw new Error('Falha no Clipboard API');
+                }).catch(() => {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        document.getElementById('copy-report-text-button').textContent = 'Copiado (Fallback)!';
+                    } catch (err) {
+                        showCustomConfirm('Não foi possível copiar. Selecione o texto e use Ctrl+C.').then(() => { });
+                    }
+                    document.body.removeChild(textArea);
+                }).finally(() => {
+                    setTimeout(() => {
+                        document.getElementById('copy-report-text-button').textContent = 'Copiar Relatório';
+                    }, 1500);
+                });
+            } catch (e) {
+                showCustomConfirm('Não foi possível copiar. Selecione o texto e use Ctrl+C.').then(() => { });
+            }
+        });
+
+        // --- Lógica de Importação e Exportação JSON (Melhorada) ---
+
+        function exportToJson(filename, data) {
+            const exportPayload = {
+                entries: data,
+                genres: STANDARD_GENRES,
+                links: STANDARD_LINKS,
+                settings: {
+                    theme: currentThemeIndex,
+                    reminderDays: reminderDaysThreshold,
+                    visibleTabs: visibleTabs,
+                    visibleCols: visibleTableColumns,
+                    blockOrder: currentBlockOrder,
+                    activeGenreFilters: activeGenreFilters,
+                    backupReminderDays: backupReminderDays // NOVO: Exporta lembrete de backup
+                }
+            };
+
+            const jsonStr = JSON.stringify(exportPayload, null, 2);
+            downloadReport(filename, jsonStr); // Reutiliza a função de download
+
+            // Salva a data da exportação
+            const now = Date.now().toString();
+            localStorage.setItem(LAST_EXPORT_KEY, now);
+            if (document.getElementById('last-export-date')) {
+                document.getElementById('last-export-date').textContent = formatLastUsageDate(now);
+            }
+
+            DOM_OPTIONS.exportJsonButton.textContent = 'Exportado!';
+            setTimeout(() => { DOM_OPTIONS.exportJsonButton.textContent = 'Exportar Dados (JSON)'; }, 1500);
+        }
+
+        async function handleJsonImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const confirmed = await showCustomConfirm("Tem certeza que deseja importar? Esta ação irá SINCRONIZAR os dados. Obras mais recentes (timestamp) no arquivo de importação SOBRESCREVERÃO as obras antigas. Novos itens serão adicionados.");
+            if (!confirmed) {
+                e.target.value = null;
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const importPayload = JSON.parse(event.target.result);
+
+                    if (!importPayload.entries || !Array.isArray(importPayload.entries)) {
+                        throw new Error("Arquivo JSON inválido. 'entries' não encontrado ou não é um array.");
+                    }
+
+                    const importedEntries = importPayload.entries;
+
+                    // Ativar loading
+                    DOM_OPTIONS.importJsonButton.disabled = true;
+                    DOM_OPTIONS.importJsonButton.textContent = 'Importando...';
+
+                    // 1. SOBRESCREVE Configurações
+                    if (importPayload.genres) {
+                        // CORREÇÃO: Substituição completa de Gêneros
+                        STANDARD_GENRES = importPayload.genres;
+                        saveGenres();
+                    }
+                    if (importPayload.links) {
+                        STANDARD_LINKS = importPayload.links;
+                        saveLinks();
+                    }
+                    if (importPayload.settings) {
+                        const s = importPayload.settings;
+                        localStorage.setItem(THEME_STORAGE_KEY, s.theme || 0);
+                        localStorage.setItem(REMINDER_STORAGE_KEY, s.reminderDays || 7);
+                        localStorage.setItem(VISIBLE_TABS_STORAGE_KEY, JSON.stringify(s.visibleTabs || {}));
+                        localStorage.setItem(VISIBLE_COLS_STORAGE_KEY, JSON.stringify(s.visibleCols || []));
+                        localStorage.setItem(BLOCK_ORDER_KEY, JSON.stringify(s.blockOrder || []));
+                        localStorage.setItem(ACTIVE_GENRE_FILTER_KEY, JSON.stringify(s.activeGenreFilters || []));
+                        localStorage.setItem(BACKUP_REMINDER_DAYS_KEY, s.backupReminderDays || 30); // NOVO: Salva lembrete de backup
+                    }
+
+                    // 2. SINCRONIZA Obras (Lógica Avançada)
+
+                    // Mapeia obras existentes pelo nome normalizado
+                    const existingEntriesMap = new Map();
+                    allEntries.forEach(entry => {
+                        existingEntriesMap.set(normalizeText(entry.name), entry);
+                    });
+
+                    const entriesToSave = [];
+                    const entriesToUpdate = [];
+                    const importedEntriesMap = new Map();
+
+                    importedEntries.forEach(importedEntry => {
+                        const normalizedName = normalizeText(importedEntry.name);
+                        importedEntriesMap.set(normalizedName, importedEntry);
+                        const existing = existingEntriesMap.get(normalizedName);
+
+                        // Se a obra importada for mais recente, ela sobrescreve
+                        if (existing) {
+                            if ((importedEntry.timestamp || 0) > (existing.timestamp || 0)) {
+                                // Sobrescreve: Adiciona à lista de update/save, usando o ID existente
+                                entriesToUpdate.push({
+                                    ...importedEntry,
+                                    id: existing.id,
+                                    createdAt: existing.createdAt // Mantém o createdAt original se possível
+                                });
+                                // Remove do mapa de existentes para que as não conflitantes sejam mantidas
+                                existingEntriesMap.delete(normalizedName);
+                            } else {
+                                // Mantém a versão local (mais recente ou mesma data)
+                                // A versão local já está no allEntries e será re-adicionada no final
+                                existingEntriesMap.delete(normalizedName);
+                            }
+                        } else {
+                            // Obra nova, adiciona para save
+                            entriesToSave.push({
+                                ...importedEntry,
+                                id: importedEntry.id || crypto.randomUUID(), // Garante um ID se não tiver
+                                createdAt: importedEntry.createdAt || Date.now()
+                            });
+                        }
+                    });
+
+                    // Itens mantidos (que não estavam no arquivo ou eram mais recentes que o arquivo)
+                    const maintainedEntries = Array.from(existingEntriesMap.values());
+                    let finalEntries = [...maintainedEntries, ...entriesToSave, ...entriesToUpdate];
+
+                    if (isLocalMode) {
+                        allEntries = finalEntries;
+                        saveLocalData();
+
+                    } else {
+                        // MODO REMOTO (Firebase): Sincronização complexa (Limpa, Adiciona e Atualiza)
+
+                        // 1. Delete ou Atualize as que precisam de ID
+                        // Para simplificar e evitar problemas de ID no Canvas:
+                        // A. Obtém uma lista de IDs que serão mantidos/atualizados (para não deletar)
+                        const currentIdsToKeep = new Set(finalEntries.filter(e => e.id).map(e => e.id));
+
+                        // B. Exclui documentos remotos que NÃO serão mantidos
+                        for (const entry of allEntries) {
+                            if (!currentIdsToKeep.has(entry.id)) {
+                                const entryRef = doc(db, getCollectionPath(userId), entry.id);
+                                await deleteDoc(entryRef);
+                            }
+                        }
+
+                        // C. Adiciona/Atualiza todos os documentos da lista final
+                        for (const data of finalEntries) {
+                            // Se for uma entrada nova (sem ID válido de Firestore), crie uma nova ref
+                            const ref = (data.id && data.id !== 'local-user')
+                                ? doc(db, getCollectionPath(userId), data.id)
+                                : doc(collection(db, getCollectionPath(userId)));
+
+                            const { id, ...rest } = data; // Remove ID para evitar o erro "Document must have an ID"
+                            await setDoc(ref, rest, { merge: true });
+                        }
+                    }
+
+                    // Salva a data da importação (Persistência Corrigida)
+                    const now = Date.now().toString();
+                    localStorage.setItem(LAST_IMPORT_KEY, now);
+                    if (document.getElementById('last-import-date')) { // Usa getElementById para garantir que existe
+                        document.getElementById('last-import-date').textContent = formatLastUsageDate(now);
+                    }
+
+                    // Recarrega a página para aplicar todas as configurações e forçar a nova leitura do filtro
+                    await showCustomConfirm("Importação inteligente concluída! A aplicação será recarregada para aplicar as configurações e filtros.");
+                    window.location.reload();
+
+                } catch (error) {
+                    console.error("Erro durante a importação do JSON:", error);
+                    showCustomConfirm(`Erro ao processar o arquivo de importação: ${error.message}`).then(() => { });
+                    DOM_OPTIONS.importJsonButton.disabled = false;
+                    DOM_OPTIONS.importJsonButton.textContent = 'Importar Dados';
+                    e.target.value = null;
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Lógica de Gráficos (Charts) ---
+
+        function getTypeColorMap() {
+            const themePrimary = THEME_PALETTES[currentThemeIndex].primary;
+            const themeSecondary = THEME_PALETTES[currentThemeIndex].secondary;
+
+            return {
+                'Manga': themePrimary,
+                'Manhwa': themeSecondary,
+                'Anime': GRAPH_COLORS.Anime,
+                'Novel': GRAPH_COLORS.Novel,
+                'Other': GRAPH_COLORS.Other,
+            };
+        }
+
+        function updateSummaryCards(entries) {
+            const totalEntries = entries.length;
+            const totalChaptersRead = entries.reduce((sum, entry) => sum + (entry.chaptersRead || 0), 0);
+            const totalReading = entries.filter(e => e.status === 'Lendo').length;
+            const totalCompleted = entries.filter(e => e.status === 'Completo').length;
+
+            document.getElementById('card-total-entries').textContent = totalEntries;
+            document.getElementById('card-chapters-read').textContent = totalChaptersRead.toLocaleString('pt-BR');
+            document.getElementById('card-reading').textContent = totalReading;
+            document.getElementById('card-completed').textContent = totalCompleted;
+        }
+
+        function renderCharts(entries) {
+            const chartsContainer = document.getElementById('charts-container');
+            const chartsNoData = document.getElementById('charts-no-data');
+            if (!chartsContainer || !chartsNoData) return;
+
+            if (entries.length === 0) {
+                chartsContainer.classList.add('hidden');
+                document.getElementById('summary-cards').classList.add('hidden');
+                chartsNoData.classList.remove('hidden');
+                return;
+            }
+
+            chartsContainer.classList.remove('hidden');
+            document.getElementById('summary-cards').classList.remove('hidden');
+            chartsNoData.classList.add('hidden');
+
+            // Atualiza os cards
+            updateSummaryCards(entries);
+
+            // Destroi instâncias antigas
+            if (typeChartInstance) typeChartInstance.destroy();
+            if (monthlyChaptersChartInstance) monthlyChaptersChartInstance.destroy();
+
+            const typeColorMap = getTypeColorMap();
+            const themePrimary = THEME_PALETTES[currentThemeIndex].read;
+
+            // 1. Distribuição por Tipo de Obra (Doughnut Chart)
+            const typeCounts = entries.reduce((acc, entry) => {
+                const type = entry.workType || 'Other';
+                acc[type] = (acc[type] || 0) + 1;
+                return acc;
+            }, {});
+
+            const typeLabels = Object.keys(typeCounts);
+            const typeData = Object.values(typeCounts);
+            const typeBackgroundColors = typeLabels.map(label => typeColorMap[label] || GRAPH_COLORS.Other);
+
+            typeChartInstance = new Chart(document.getElementById('typeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: typeLabels,
+                    datasets: [{ data: typeData, backgroundColor: typeBackgroundColors, hoverOffset: 8 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { labels: { color: 'white' } },
+                        title: { display: false }
+                    }
+                }
+            });
+
+
+            // 2. Capítulos Lidos por Mês (Bar Chart) - Lógica Ajustada para Histórico
+            const monthlyData = {};
+            const monthLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            monthLabels.forEach(m => monthlyData[m] = 0);
+
+            entries.forEach(entry => {
+                let totalNoHistorico = 0;
+                
+                // 1. Soma os capítulos registrados no novo sistema de histórico detalhado
+                if (entry.readingHistory && Array.isArray(entry.readingHistory)) {
+                    entry.readingHistory.forEach(record => {
+                        if (record.date && record.amount) {
+                            const date = new Date(record.date);
+                            const monthName = monthLabels[date.getMonth()];
+                            if (monthlyData.hasOwnProperty(monthName)) {
+                                monthlyData[monthName] += record.amount;
+                                totalNoHistorico += record.amount;
+                            }
+                        }
+                    });
+                }
+
+                // 2. Calcula se existem capítulos "antigos" (lidos antes da atualização do sistema)
+                // e os atribui ao mês de criação para não distorcer o gráfico atual
+                const saldoRemanescente = (entry.chaptersRead || 0) - totalNoHistorico;
+                if (saldoRemanescente > 0) {
+                    const dataOriginal = new Date(entry.createdAt || entry.timestamp || Date.now());
+                    const monthName = monthLabels[dataOriginal.getMonth()];
+                    if (monthlyData.hasOwnProperty(monthName)) {
+                        monthlyData[monthName] += saldoRemanescente;
+                    }
+                }
+            });
+
+            monthlyChaptersChartInstance = new Chart(document.getElementById('monthlyChaptersChart'), {
+                type: 'bar',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{
+                        label: 'Capítulos Lidos',
+                        data: Object.values(monthlyData),
+                        backgroundColor: themePrimary,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: false },
+                            ticks: { color: 'gray' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'gray' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+       // Função específica para o botão "+" no lembrete
+window.handlePlusWithConfirm = async (entryId) => {
+    const entry = allEntries.find(e => e.id === entryId);
+    if (!entry) return;
+
+    const nextChapter = (parseInt(entry.chaptersRead) || 0) + 1;
+
+    // 1. Pergunta se a obra parou no próximo capítulo
+    const confirmed = await showCustomConfirm(
+        `O mangá "${entry.name}" parou no capítulo ${nextChapter}?\n\nConfirmar irá atualizar o seu progresso e resetar o lembrete.`
+    );
+
+    if (confirmed) {
+        const now = Date.now();
+        
+        // 2. Atualiza ambos: Lidos e Totais para o novo valor
+        const updateData = {
+            chaptersRead: nextChapter,
+            totalChapters: Math.max(nextChapter, entry.totalChapters || 0),
+            timestamp: now
+        };
+
+        // Adiciona ao histórico para o gráfico
+        if (!entry.readingHistory) entry.readingHistory = [];
+        entry.readingHistory.push({ date: now, amount: 1 });
+        updateData.readingHistory = entry.readingHistory;
+
+        if (isLocalMode) {
+            Object.assign(entry, updateData);
+            saveLocalData();
+            renderReminders();
+            if (trackerInitialized) sortEntries();
+        } else {
+            try {
+                const entryRef = doc(db, getCollectionPath(userId), entryId);
+                await setDoc(entryRef, updateData, { merge: true });
+                // O listener do Firebase atualizará a UI
+            } catch (error) {
+                console.error("Erro ao atualizar:", error);
+            }
+        }
+    }
+};
+        // --- INICIALIZAÇÃO ---
+        window.onload = main;
+
+    </script>
+
+</body>
+
+</html>
